@@ -1,9 +1,19 @@
 ﻿@page "/products/create"
 
-@using Microsoft.EntityFrameworkCore
+@using BitsAndBots.Data
 @using BitsAndBots.Models
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.AspNetCore.Identity
+@using Microsoft.EntityFrameworkCore
 @inject IDbContextFactory<BitsAndBots.Data.ApplicationDbContext> DbFactory
 @inject NavigationManager NavigationManager
+@inject UserManager<ApplicationUser> UserManager
+@inject IHttpContextAccessor HttpContextAccessor
+
+
+@rendermode InteractiveServer
+
+@attribute [Authorize]
 
 <PageTitle>Create</PageTitle>
 
@@ -23,7 +33,7 @@
             </div>        
             <div class="mb-3">
                 <label for="description" class="form-label">Description:</label> 
-                <InputText id="description" @bind-Value="Product.Description" class="form-control" /> 
+                <InputTextArea id="description" @bind-Value="Product.Description" class="form-control" /> 
                 <ValidationMessage For="() => Product.Description" class="text-danger" /> 
             </div>        
             <div class="mb-3">
@@ -46,6 +56,7 @@
 </div>
 
 @code {
+    public ApplicationUser CurrentUser { get; set; }
 
     [SupplyParameterFromForm]
     public Product Product { get; set; } = new();
@@ -54,8 +65,22 @@
     public async Task AddProduct()
     {
         using var context = DbFactory.CreateDbContext();
+
+        context.Attach(CurrentUser);
+
+        Product.Author = CurrentUser;
+        Product.AuthorId = CurrentUser.Id;
+
         context.Product.Add(Product);
         await context.SaveChangesAsync();
+
         NavigationManager.NavigateTo("/products");
     }
+
+    protected override async Task OnInitializedAsync()
+    {
+        var claimsPrincipal = HttpContextAccessor.HttpContext.User;
+        CurrentUser = await UserManager.GetUserAsync(claimsPrincipal);
+    }
+
 }
