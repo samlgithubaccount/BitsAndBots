@@ -15,10 +15,14 @@ namespace BitsAndBots.Data
             modelBuilder.Entity<Product>(entity =>
             {
                 entity.HasKey(product => product.Id);
-                entity.HasOne(product => product.Author)
+                entity.HasOne(product => product.CreatedUser)
                     .WithMany(user => user.Products)
-                    .HasForeignKey(product => product.AuthorId)
+                    .HasForeignKey(product => product.CreatedUserId)
                     .IsRequired();
+
+                entity.HasMany(product => product.Images)
+                    .WithOne(image => image.Product)
+                    .HasForeignKey(image => image.ProductId);
             });
         }
     }

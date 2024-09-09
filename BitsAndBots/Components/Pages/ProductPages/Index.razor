@@ -5,7 +5,7 @@
 @using BitsAndBots.Models
 @using BitsAndBots.Data
 @inject IDbContextFactory<BitsAndBots.Data.ApplicationDbContext> DbFactory
-@implements IAsyncDisposable
+@* @implements IAsyncDisposable *@
 @rendermode InteractiveServer
 
 
@@ -13,30 +13,58 @@
 
 <h1>Index</h1>
 
+@* TODO: Only show when logged in or change it to dislay something like sign up? *@
 <p>
     <a href="products/create">Create New</a>
 </p>
 
-<QuickGrid Class="table" Items="context.Product">
-    <PropertyColumn Property="product => product.Title" />
-    <PropertyColumn Property="product => product.Description" />
-    <PropertyColumn Property="product => product.Price" />
-    <PropertyColumn Property="product => product.Quantity" />
+ @* <QuickGrid Class="table" Items="context.Product">
+     <PropertyColumn Property="product => product.Title" />
+     <PropertyColumn Property="product => product.Description" />
+     <PropertyColumn Property="product => product.Price" />
+     <PropertyColumn Property="product => product.Quantity" />
 
-    <TemplateColumn Context="product">
-        <a href="@($"products/edit?id={product.Id}")">Edit</a> |
-        <a href="@($"products/details?id={product.Id}")">Details</a> |
-        <a href="@($"products/delete?id={product.Id}")">Delete</a>
-    </TemplateColumn>
-</QuickGrid>
+     <TemplateColumn Context="product">
+         <a href="@($"products/edit?id={product.Id}")">Edit</a> |
+         <a href="@($"products/details?id={product.Id}")">Details</a> |
+         <a href="@($"products/delete?id={product.Id}")">Delete</a>
+     </TemplateColumn>
+ </QuickGrid> *@
+
+ <EditForm EditContext="@EditContext" method="post" OnValidSubmit="AddProduct" OnInvalidSubmit="ClearErrors" FormName="create" Enhance>
+    <InputText @bind-Value="SearchQuery" placeholder="Search for a product..." />
+    <button type="submit" class="btn btn-primary">Create</button>
+</EditForm>
+
+@if (!Products.Any()) {
+
+} else {
+    foreach (var product in Products) {
+        <div>
+            <a href="@($"products/details?id={product.Id}")">
+                <img src="data:image;base64,@System.Convert.ToBase64String(product.Images.First().ImageData)" />
+            </a>
+        </div>
+    }
+}
+
 
 @code {
-    ApplicationDbContext context = default!;
+    // ApplicationDbContext context = default!;
 
-    protected override void OnInitialized()
+    // protected override void OnInitialized()
+    // {
+    //     context = DbFactory.CreateDbContext();
+    // }
+
+    public string SearchQuery { get; set; }
+    public List<Product> Products { get; set; } = new();
+
+    protected override async Task OnInitializedAsync()
     {
-        context = DbFactory.CreateDbContext();
+        using var context = DbFactory.CreateDbContext();
+        Products = await context.Product.Include(product => product.Images).ToListAsync();
     }
 
-    public async ValueTask DisposeAsync() => await context.DisposeAsync();
+    //public async ValueTask DisposeAsync() => await context.DisposeAsync();
 }

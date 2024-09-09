@@ -1,16 +1,18 @@
 ﻿@page "/products/create"
 
+@using BitsAndBots.Configuration
 @using BitsAndBots.Data
 @using BitsAndBots.Models
 @using Microsoft.AspNetCore.Authorization
 @using Microsoft.AspNetCore.Identity
 @using Microsoft.EntityFrameworkCore
+@inject IConfiguration Configuration
 @inject IDbContextFactory<BitsAndBots.Data.ApplicationDbContext> DbFactory
 @inject NavigationManager NavigationManager
 @inject UserManager<ApplicationUser> UserManager
 @inject IHttpContextAccessor HttpContextAccessor
 
-
+@* //TODO: Confirm if the website needds to work with javascript disabled. *@
 @rendermode InteractiveServer
 
 @attribute [Authorize]
@@ -23,7 +25,7 @@
 <hr />
 <div class="row">
     <div class="col-md-4">
-        <EditForm method="post" Model="Product" OnValidSubmit="AddProduct" FormName="create" Enhance>
+        <EditForm EditContext="@EditContext" method="post" OnValidSubmit="AddProduct" OnInvalidSubmit="ClearErrors" FormName="create" Enhance>
             <DataAnnotationsValidator />
             <ValidationSummary class="text-danger" />
             <div class="mb-3">
@@ -45,7 +47,11 @@
                 <label for="quantity" class="form-label">Quantity:</label> 
                 <InputNumber id="quantity" @bind-Value="Product.Quantity" class="form-control" /> 
                 <ValidationMessage For="() => Product.Quantity" class="text-danger" /> 
-            </div>        
+            </div>   
+            <div class="mb-3">
+                <InputFile @key=@(inputFileId) OnChange="LoadFiles" multiple accept="@FileUploadConstraints.AllowedExtensions" class="form-control" />
+                <ValidationMessage For="() => Product.Images" class="text-danger" />
+            </div>
             <button type="submit" class="btn btn-primary">Create</button>
         </EditForm>
     </div>
@@ -56,10 +62,18 @@
 </div>
 
 @code {
-    public ApplicationUser CurrentUser { get; set; }
-
     [SupplyParameterFromForm]
     public Product Product { get; set; } = new();
+
+
+    public EditContext EditContext;
+    public ValidationMessageStore ValidationMessageStore;
+
+    public ApplicationUser CurrentUser { get; set; }
+    public FileUploadConstraints FileUploadConstraints { get; set; } = new();
+
+    private string inputFileId = Guid.NewGuid().ToString();
+
 
     // To protect from overposting attacks, see https://aka.ms/RazorPagesCRUD
     public async Task AddProduct()
@@ -68,8 +82,8 @@
 
         context.Attach(CurrentUser);
 
-        Product.Author = CurrentUser;
-        Product.AuthorId = CurrentUser.Id;
+        Product.CreatedUser = CurrentUser;
+        Product.CreatedUserId = CurrentUser.Id;
 
         context.Product.Add(Product);
         await context.SaveChangesAsync();
@@ -77,10 +91,81 @@
         NavigationManager.NavigateTo("/products");
     }
 
+    // To protect from overposting attacks, see https://aka.ms/RazorPagesCRUD
+    public void ClearErrors()
+    {
+        ValidationMessageStore.Clear();
+    }
+
     protected override async Task OnInitializedAsync()
     {
         var claimsPrincipal = HttpContextAccessor.HttpContext.User;
         CurrentUser = await UserManager.GetUserAsync(claimsPrincipal);
+        FileUploadConstraints = Configuration.GetSection("FileUploadConstraints").Get<FileUploadConstraints>()!;
     }
 
+    protected override void OnInitialized()
+    {
+        EditContext = new EditContext(Product);
+        ValidationMessageStore = new ValidationMessageStore(EditContext);
+    }
+
+    //TODO: Change this to interactive file selection later
+    private async void LoadFiles(InputFileChangeEventArgs e)
+    {
+        Product.Images.Clear();
+        ValidationMessageStore.Clear(() => Product.Images);
+
+        if (e.FileCount > FileUploadConstraints.MaxFiles)
+        {
+            ValidationMessageStore.Add(() => Product.Images, $"A maximum of {FileUploadConstraints.MaxFiles} files may be uploaded.");
+            EditContext.NotifyValidationStateChanged();
+            inputFileId = Guid.NewGuid().ToString();
+            return;
+        }
+
+        var files = e.GetMultipleFiles();
+
+        foreach (var file in files)
+        {
+            List<string> validationMessages = new();
+
+            if (!FileUploadConstraints.AllowedExtensions.Contains(Path.GetExtension(file.Name), StringComparison.OrdinalIgnoreCase))
+            {
+                validationMessages.Add($"The file {file.Name} is not of a valid file type. The allowed file types are: {string.Join(", ", FileUploadConstraints.AllowedExtensions)}");
+            }
+            if (file.Size > FileUploadConstraints.MaxFileSize)
+            {
+                validationMessages.Add($"The file {file.Name} is larger than the maximum allowed file size of {FileUploadConstraints.MaxFileSize / 1024F} MB.");
+            }
+            if (validationMessages.Any())
+            {
+                ValidationMessageStore.Add(() => Product.Images, validationMessages);
+                EditContext.NotifyValidationStateChanged();
+                inputFileId = Guid.NewGuid().ToString();
+                return;
+            }
+
+            var tempFilePath = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
+            await using FileStream fileStream = new(tempFilePath, FileMode.Create);
+            await file.OpenReadStream(file.Size).CopyToAsync(fileStream);
+
+            var fileData = new byte[file.Size];
+            fileStream.Position = 0;
+            await fileStream.ReadAsync(fileData);
+            fileStream.Close();
+
+            File.Delete(tempFilePath);
+
+            var image = new ProductImage
+			{
+				ImageData = fileData,
+                Product = Product,
+                ProductId = Product.Id 
+			};
+            Product.Images.Add(image);
+
+            EditContext.NotifyFieldChanged(EditContext.Field("Images"));
+        }
+    }
 }
