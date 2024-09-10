@@ -117,7 +117,7 @@ namespace BitsAndBots.Migrations
 
                     b.HasIndex("CreatedUserId");
 
-                    b.ToTable("Product");
+                    b.ToTable("Product", (string)null);
                 });
 
             modelBuilder.Entity("BitsAndBots.Models.ProductImage", b =>
@@ -142,7 +142,7 @@ namespace BitsAndBots.Migrations
 
                     b.HasIndex("ProductId");
 
-                    b.ToTable("ProductImage");
+                    b.ToTable("ProductImage", (string)null);
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRole", b =>
