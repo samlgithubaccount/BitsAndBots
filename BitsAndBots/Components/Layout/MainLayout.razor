@@ -1,38 +1,39 @@
 ﻿@inherits LayoutComponentBase
 
 
-
-
+<img style="overflow:hidden;width:5vw;height:100%;" src=" imgs/bitsandbotslogo.svg" />
+<a class="navbar-brand" asp-area="" asp-page="/Home">Bits and Bots</a>
+<div class="profile">profile</div>
 <div class="page">
 
     <main>
         <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light bg-white border-bottom box-shadow mb-3">
             <div class="container">
-                <a class="navbar-brand" asp-area="" asp-page="/Home">Bits and Bots</a>
-                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse" aria-controls="navbarSupportedContent"
-                        aria-expanded="false" aria-label="Toggle navigation">
-                    <span class="navbar-toggler-icon"></span>
-                </button>
+                
                 <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
                     <ul class="navbar-nav flex-grow-1">
                         <li class="nav-item border-right">
                             <NavLink class="nav-link" href="" Match="NavLinkMatch.All">
                                 <span class="bi bi-house-door-fill-nav-menu" aria-hidden="true"></span> Home
+                                <img style="overflow:hidden;width:2vw;height:100%;" src=" imgs/bitsandbotslogo.svg" />
                             </NavLink>
                         </li>
                         <li class="nav-item border-right">
-                            <NavLink class="nav-link" href="" Match="NavLinkMatch.All">
+                            <NavLink class="nav-link" href="/products" Match="NavLinkMatch.All">
                                 <span class="bi bi-house-door-fill-nav-menu" aria-hidden="true"></span> Products
+                                <img style="overflow:hidden;width:2vw;height:100%;" src=" imgs/products.svg" />
                             </NavLink>
                         </li>
                         <li class="nav-item border-right">
-                            <NavLink class="nav-link" href="" Match="NavLinkMatch.All">
+                            <NavLink class="nav-link" href="/events" Match="NavLinkMatch.All">
                                 <span class="bi bi-house-door-fill-nav-menu" aria-hidden="true"></span> Events
+                                <img style="overflow:hidden;width:2vw;height:100%;" src=" imgs/events.svg" />
                             </NavLink>
                         </li>
                         <li class="nav-item">
-                            <NavLink class="nav-link" href="" Match="NavLinkMatch.All">
+                            <NavLink class="nav-link" href="/fundraisers" Match="NavLinkMatch.All">
                                 <span class="bi bi-house-door-fill-nav-menu" aria-hidden="true"></span> Fundraisers
+                                <img style="overflow:hidden;width:1vw;height:100%;" src=" imgs/fundraiser.svg" />
                             </NavLink>
                         </li>
                     </ul>
@@ -44,11 +45,7 @@
             @Body
         </article>
 
-        <footer class="border-top footer text-muted">
-            <div class="container">
-                &copy; 2024 - WebApplication1 - <a asp-area="" asp-page="/Privacy">Privacy</a>
-            </div>
-        </footer>
+        
 
     </main>
 </div>

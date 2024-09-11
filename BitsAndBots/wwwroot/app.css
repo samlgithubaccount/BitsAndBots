@@ -5,6 +5,9 @@
 a, .btn-link {
     color: #006bb7;
 }
+.border-right {
+    border-right: 1px solid #e5e5e5;
+}
 
 .btn-primary {
     color: #fff;
