@@ -1,11 +1,17 @@
 ﻿@page "/Products/edit"
 
+@using BitsAndBots.Data
+@using BitsAndBots.Service
+@using Microsoft.AspNetCore.Authorization
 @using Microsoft.EntityFrameworkCore
 @using BitsAndBots.Models
 @inject IDbContextFactory<BitsAndBots.Data.ApplicationDbContext> DbFactory
 @inject NavigationManager NavigationManager
+@inject UserService UserService
+
 @rendermode InteractiveServer
 
+@attribute [Authorize]
 
 <PageTitle>Edit</PageTitle>
 
@@ -62,8 +68,12 @@ else
     [SupplyParameterFromForm]
     public Product? Product { get; set; }
 
+    public ApplicationUser CurrentUser { get; set; }
+
     protected override async Task OnInitializedAsync()
     {
+        CurrentUser = await UserService.GetCurrentUser();
+
         using var context = DbFactory.CreateDbContext();
         Product ??= await context.Product.FirstOrDefaultAsync(m => m.Id == Id);
 

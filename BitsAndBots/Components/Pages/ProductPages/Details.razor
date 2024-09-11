@@ -1,14 +1,20 @@
 ﻿@page "/products/details"
 
+@using BitsAndBots.Data
+@using BitsAndBots.Service
 @using Microsoft.EntityFrameworkCore
 @using BitsAndBots.Models
 @inject IDbContextFactory<BitsAndBots.Data.ApplicationDbContext> DbFactory
 @inject NavigationManager NavigationManager
+@inject UserService UserService
+
 @rendermode InteractiveServer
 
 <PageTitle>Details</PageTitle>
 
 <h1>Details</h1>
+
+<a href="@($"/products")">Back</a>
 
 <div>
     <h4>Product</h4>
@@ -37,10 +43,15 @@
                 }
             </dd>
         </dl>
-        <div>
-            <a href="@($"/products/edit?id={product.Id}")">Edit</a> |
-            <a href="@($"/products")">Back to List</a>
-        </div>
+        @if (CanCurrentUserModifyProduct)
+        {
+            <div>
+                <a href="@($"/products/edit?id={product.Id}")">Edit</a>
+                <EditForm method="post" Model="product" OnValidSubmit="DeleteProduct" FormName="delete" Enhance>
+                    <button type="submit" class="btn btn-danger" disabled="@(product is null)">Delete</button>
+                </EditForm>
+            </div>
+        }
     }
 </div>
 
@@ -49,6 +60,8 @@
 
     [SupplyParameterFromQuery]
     public long Id { get; set; }
+
+    public bool CanCurrentUserModifyProduct { get; set; }
 
     protected override async Task OnInitializedAsync()
     {
@@ -61,5 +74,22 @@
         {
             NavigationManager.NavigateTo("notfound");
         }
+
+        CanCurrentUserModifyProduct = await UserCreatedProductOrIsAdministrator();
     }
+
+    public async Task DeleteProduct()
+    {
+        using var context = DbFactory.CreateDbContext();
+        context.Product.Remove(product!);
+        await context.SaveChangesAsync();
+        NavigationManager.NavigateTo("/products");
+    }
+
+    public async Task<bool> UserCreatedProductOrIsAdministrator()
+	{
+        var currentUser = await UserService.GetCurrentUser();
+        var currentUserRoles = await UserService.GetCurrentUserRoles();
+		return currentUser != null && (product.CreatedUserId == currentUser.Id || currentUserRoles.Contains("Administrator"));
+	}
 }

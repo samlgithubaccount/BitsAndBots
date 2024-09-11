@@ -3,14 +3,14 @@
 @using BitsAndBots.Configuration
 @using BitsAndBots.Data
 @using BitsAndBots.Models
+@using BitsAndBots.Service
 @using Microsoft.AspNetCore.Authorization
 @using Microsoft.AspNetCore.Identity
 @using Microsoft.EntityFrameworkCore
 @inject IConfiguration Configuration
 @inject IDbContextFactory<BitsAndBots.Data.ApplicationDbContext> DbFactory
 @inject NavigationManager NavigationManager
-@inject UserManager<ApplicationUser> UserManager
-@inject IHttpContextAccessor HttpContextAccessor
+@inject UserService UserService
 
 @* //TODO: Confirm if the website needds to work with javascript disabled. *@
 @rendermode InteractiveServer
@@ -99,8 +99,7 @@
 
     protected override async Task OnInitializedAsync()
     {
-        var claimsPrincipal = HttpContextAccessor.HttpContext.User;
-        CurrentUser = await UserManager.GetUserAsync(claimsPrincipal);
+        CurrentUser = await UserService.GetCurrentUser();
         FileUploadConstraints = Configuration.GetSection("FileUploadConstraints").Get<FileUploadConstraints>()!;
     }
 
@@ -111,6 +110,7 @@
     }
 
     //TODO: Change this to interactive file selection later
+    //TODO: It says none selected when clicked and cancelled but still works
     private async void LoadFiles(InputFileChangeEventArgs e)
     {
         Product.Images.Clear();
