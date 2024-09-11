@@ -1,20 +1,59 @@
 ﻿@inherits LayoutComponentBase
 
+
+
+
 <div class="page">
-    <div class="sidebar">
-        <NavMenu />
-    </div>
 
     <main>
-        <div class="top-row px-4">
-            <a href="https://learn.microsoft.com/aspnet/core/" target="_blank">About</a>
-        </div>
+        <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light bg-white border-bottom box-shadow mb-3">
+            <div class="container">
+                <a class="navbar-brand" asp-area="" asp-page="/Home">Bits and Bots</a>
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse" aria-controls="navbarSupportedContent"
+                        aria-expanded="false" aria-label="Toggle navigation">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+                <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
+                    <ul class="navbar-nav flex-grow-1">
+                        <li class="nav-item border-right">
+                            <NavLink class="nav-link" href="" Match="NavLinkMatch.All">
+                                <span class="bi bi-house-door-fill-nav-menu" aria-hidden="true"></span> Home
+                            </NavLink>
+                        </li>
+                        <li class="nav-item border-right">
+                            <NavLink class="nav-link" href="" Match="NavLinkMatch.All">
+                                <span class="bi bi-house-door-fill-nav-menu" aria-hidden="true"></span> Products
+                            </NavLink>
+                        </li>
+                        <li class="nav-item border-right">
+                            <NavLink class="nav-link" href="" Match="NavLinkMatch.All">
+                                <span class="bi bi-house-door-fill-nav-menu" aria-hidden="true"></span> Events
+                            </NavLink>
+                        </li>
+                        <li class="nav-item">
+                            <NavLink class="nav-link" href="" Match="NavLinkMatch.All">
+                                <span class="bi bi-house-door-fill-nav-menu" aria-hidden="true"></span> Fundraisers
+                            </NavLink>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </nav>
 
         <article class="content px-4">
             @Body
         </article>
+
+        <footer class="border-top footer text-muted">
+            <div class="container">
+                &copy; 2024 - WebApplication1 - <a asp-area="" asp-page="/Privacy">Privacy</a>
+            </div>
+        </footer>
+
     </main>
 </div>
+
+
 
 <div id="blazor-error-ui">
     An unhandled error has occurred.
