@@ -1,5 +1,8 @@
 ﻿@inherits LayoutComponentBase
 
+@implements IDisposable
+
+@inject NavigationManager NavigationManager
 
 <img style="overflow:hidden;width:5vw;height:100%;" src=" imgs/bitsandbotslogo.svg" />
 <a class="navbar-brand" asp-area="" asp-page="/Home">Bits and Bots</a>
@@ -36,6 +39,42 @@
                                 <img style="overflow:hidden;width:2vw;height:100%;" src=" imgs/fundraiser.svg" />
                             </NavLink>
                         </li>
+                        <li class="nav-item">
+                            <NavLink class="nav-link" href="/fundraisers">
+                                <span class="bi bi-house-door-fill-nav-menu" aria-hidden="true"></span> Fundraisers
+                                <img style="overflow:hidden;width:2vw;height:100%;" src=" imgs/fundraiser.svg" />
+                            </NavLink>
+                        </li>
+                        <AuthorizeView>
+                            <Authorized>
+                                <li class="nav-item">
+                                    <NavLink class="nav-link" href="Account/Manage">
+                                        <span class="bi bi-person-fill-nav-menu" aria-hidden="true"></span> @context.User.Identity?.Name
+                                    </NavLink>
+                                </li>
+                                <li class="nav-item">
+                                    <form action="Account/Logout" method="post">
+                                        <AntiforgeryToken />
+                                        <input type="hidden" name="ReturnUrl" value="@currentUrl" />
+                                        <button type="submit" class="nav-link">
+                                            <span class="bi bi-arrow-bar-left-nav-menu" aria-hidden="true"></span> Logout
+                                        </button>
+                                    </form>
+                                </li>
+                            </Authorized>
+                            <NotAuthorized>
+                                <li class="nav-item">
+                                    <NavLink class="nav-link" href="Account/Register">
+                                        <span class="bi bi-person-nav-menu" aria-hidden="true"></span> Register
+                                    </NavLink>
+                                </li>
+                                <li class="nav-item">
+                                    <NavLink class="nav-link" href="Account/Login">
+                                        <span class="bi bi-person-badge-nav-menu" aria-hidden="true"></span> Login
+                                    </NavLink>
+                                </li>
+                            </NotAuthorized>
+                        </AuthorizeView>
                     </ul>
                 </div>
             </div>
@@ -57,3 +96,24 @@
     <a href="" class="reload">Reload</a>
     <a class="dismiss">🗙</a>
 </div>
+
+@code {
+    private string? currentUrl;
+
+    protected override void OnInitialized()
+    {
+        currentUrl = NavigationManager.ToBaseRelativePath(NavigationManager.Uri);
+        NavigationManager.LocationChanged += OnLocationChanged;
+    }
+
+    private void OnLocationChanged(object? sender, LocationChangedEventArgs e)
+    {
+        currentUrl = NavigationManager.ToBaseRelativePath(e.Location);
+        StateHasChanged();
+    }
+
+    public void Dispose()
+    {
+        NavigationManager.LocationChanged -= OnLocationChanged;
+    }
+}
