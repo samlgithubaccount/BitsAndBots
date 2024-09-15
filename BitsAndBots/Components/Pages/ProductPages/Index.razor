@@ -19,14 +19,14 @@
 
 <form @onsubmit="GetProducts">
     <InputText @bind-Value="SearchQuery" placeholder="Search for a product..." />
+    <button class="btn btn-primary">Search</button>
     <label for="sort-by">Sort by</label>
-    <select @bind="SortBy" name="sort-by" id="cars">
+    <select @bind="SortBy" @bind:after="GetProducts" name="sort-by" id="cars">
         @foreach (var sortOption in ProductSortOptions.GetAll())
 		{
 			<option value="@sortOption.DisplayName">@sortOption.DisplayName</option>
 		})
     </select>
-    <button class="btn btn-primary">Search</button>
 </form>
 
 @if (!Products.Any()) {
