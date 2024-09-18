@@ -31,10 +31,16 @@
             <dd class="col-sm-10">@product.Description</dd>
             <dt class="col-sm-2">Price</dt>
             <dd class="col-sm-10">@product.Price</dd>
-            <dt class="col-sm-2">Quantity</dt>
+            <dt class="col-sm-2">Quantity Available</dt>
             <dd class="col-sm-10">@product.Quantity</dd>
+            <dt class="col-sm-2">Location</dt>
+            <dd class="col-sm-10">@product.Location</dd>
             <dt class="col-sm-2">CreatedBy</dt>
             <dd class="col-sm-10">@product.CreatedUser.Email</dd>
+            <dt class="col-sm-2">Created</dt>
+            <dd class="col-sm-10">@product.CreatedTimestamp</dd>
+            <dt class="col-sm-2">Last Updated</dt>
+            <dd class="col-sm-10">@product.LastUpdatedTimestamp</dd>
             <dt class="col-sm-2">Image</dt>
             <dd class="col-sm-10">
                 @foreach(var image in product.Images)
@@ -50,10 +56,11 @@
                 <EditForm method="post" Model="productEnquiry" OnValidSubmit="SubmitEnquiry" FormName="enquire" Enhance>
                     <DataAnnotationsValidator />
                     <div class="mb-3">
-                        <label for="message" class="form-label">Description:</label>
+                        <label for="message" class="form-label">Message:</label>
                         <InputTextArea id="message" @bind-Value="productEnquiry.Message" class="form-control" />
                         <ValidationMessage For="() => productEnquiry.Message" class="text-danger" />
                     </div>
+                    @* TODO: Validate less than avaialable quantity *@
                     @if (product.Quantity != null) {
                         <div class="mb-3">
                             <label for="quantity" class="form-label">Quantity:</label>

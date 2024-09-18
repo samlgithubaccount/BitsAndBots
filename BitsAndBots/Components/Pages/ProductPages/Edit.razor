@@ -1,4 +1,4 @@
-﻿@page "/Products/edit"
+﻿@* @page "/Products/edit"
 
 @using BitsAndBots.Data
 @using BitsAndBots.Service
@@ -47,9 +47,23 @@ else
                     <ValidationMessage For="() => Product.Price" class="text-danger" />
                 </div>
                 <div class="mb-3">
-                    <label for="quantity" class="form-label">Quantity:</label>
+                    <label for="quantity" class="form-label">Quantity Available:</label>
                     <InputNumber id="quantity" @bind-Value="Product.Quantity" class="form-control" />
                     <ValidationMessage For="() => Product.Quantity" class="text-danger" />
+                </div>
+                <div class="mb-3">
+                    <label for="tags" class="form-label">Tags:</label>
+                    <InputTextArea id="tags" @bind-Value="TagsList" class="form-control" />
+                    <ValidationMessage For="() => TagsList" class="text-danger" />
+                </div>
+                <div class="mb-3">
+                    <label for="location" class="form-label">Location:</label>
+                    <InputTextArea id="location" @bind-Value="Product.Location" class="form-control" />
+                    <ValidationMessage For="() => Product.Location" class="text-danger" />
+                </div>
+                <div class="mb-3">
+                    <InputFile @key=@(inputFileId) OnChange="LoadFiles" multiple accept="@FileUploadConstraints.AllowedExtensions" class="form-control" />
+                    <ValidationMessage For="() => Product.Images" class="text-danger" />
                 </div>
                 <button type="submit" class="btn btn-primary">Save</button>
             </EditForm>
@@ -114,4 +128,11 @@ else
         using var context = DbFactory.CreateDbContext();
         return context.Product.Any(e => e.Id == id);
     }
+
+    private string TagsList
+    {
+        get => string.Join(", ", Product.Tags);
+        set => Product.Tags = value.Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries).Select(tag => tag.Trim()).ToList();
+    }
 }
+ *@
