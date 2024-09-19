@@ -13,6 +13,17 @@ namespace BitsAndBots.Data
         {
             base.OnModelCreating(modelBuilder);
 
+            var admin = new IdentityRole("admin");
+            admin.NormalizedName = "admin";
+
+            var client = new IdentityRole("client");
+            client.NormalizedName = "client";
+
+            var seller = new IdentityRole("seller");
+            seller.NormalizedName = "seller";
+
+            modelBuilder.Entity<IdentityRole>().HasData(admin, client, seller);
+
             modelBuilder.Entity<Product>(entity =>
             {
                 entity.HasKey(product => product.Id);
