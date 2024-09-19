@@ -12,7 +12,6 @@
 @inject NavigationManager NavigationManager
 @inject UserService UserService
 
-@* //TODO: Confirm if the website needds to work with javascript disabled. *@
 @rendermode InteractiveServer
 
 @attribute [Authorize]
@@ -58,18 +57,6 @@
                 <InputTextArea id="location" @bind-Value="Product.Location" class="form-control" />
                 <ValidationMessage For="() => Product.Location" class="text-danger" />
             </div>
-@*             <div class="mb-3">
-                <InputFile @key=@(inputFileId) OnChange="LoadFiles" multiple accept="@FileUploadConstraints.AllowedExtensions" class="form-control" />
-                <ValidationMessage For="() => Product.Images" class="text-danger" />
-            </div>
-             @for (int i = 0; i < Product.Images.Count; ++i)
-             {
-                 var index = i;
-                 <div class="mb-3" draggable="true" ondragover="event.preventDefault();" @ondragstart="@(() => OnDragStart(index))" @ondrop="@(() => OnDrop(index))">
-                     <button class="btn btn-primary" @onclick="(()=> RemoveImage(Product.Images[index]))">Remove</button>
-                     <img src="@($"data:image/png;base64,{Convert.ToBase64String(Product.Images[index].ImageData)}")" alt="Product Image" class="img-thumbnail" />
-                 </div>
-             } *@
             <ImagePicker TImage="ProductImage" EditContext="@EditContext" ValidationMessageStore="@ValidationMessageStore" Images="@Product.Images" Field="@(() => Product.Images)"/>
             <button @onclick="ClearErrors" type="submit" class="btn btn-primary">Create</button>
         </EditForm>
@@ -84,17 +71,11 @@
     [SupplyParameterFromForm]
     public Product Product { get; set; } = new();
 
-
     public EditContext EditContext;
     public ValidationMessageStore ValidationMessageStore;
 
     public ApplicationUser CurrentUser { get; set; }
-    public FileUploadConstraints FileUploadConstraints { get; set; } = new();
 
-    private string inputFileId = Guid.NewGuid().ToString();
-
-
-    // To protect from overposting attacks, see https://aka.ms/RazorPagesCRUD
     public async Task AddProduct()
     {
         using var context = DbFactory.CreateDbContext();
@@ -114,7 +95,6 @@
         NavigationManager.NavigateTo("/products");
     }
 
-    // To protect from overposting attacks, see https://aka.ms/RazorPagesCRUD
     public void ClearErrors()
     {
         ValidationMessageStore.Clear();
@@ -123,7 +103,6 @@
     protected override async Task OnInitializedAsync()
     {
         CurrentUser = await UserService.GetCurrentUser();
-        FileUploadConstraints = Configuration.GetSection("FileUploadConstraints").Get<FileUploadConstraints>()!;
     }
 
     protected override void OnInitialized()
@@ -132,89 +111,9 @@
         ValidationMessageStore = new ValidationMessageStore(EditContext);
     }
 
-    private void RemoveImage(ProductImage image)
-    {
-        Product.Images.Remove(image);
-    }
-
-    private int? draggedIndex;
-
-    //TODO: Change this to interactive file selection later
-    //TODO: It says none selected when clicked and cancelled but still works
-    private async void LoadFiles(InputFileChangeEventArgs e)
-    {
-        Product.Images.Clear();
-        ValidationMessageStore.Clear(() => Product.Images);
-
-        if (e.FileCount > FileUploadConstraints.MaxFiles)
-        {
-            ValidationMessageStore.Add(() => Product.Images, $"A maximum of {FileUploadConstraints.MaxFiles} files may be uploaded.");
-            EditContext.NotifyValidationStateChanged();
-            inputFileId = Guid.NewGuid().ToString();
-            return;
-        }
-
-        var files = e.GetMultipleFiles();
-
-        foreach (var file in files)
-        {
-            List<string> validationMessages = new();
-
-            if (!FileUploadConstraints.AllowedExtensions.Contains(Path.GetExtension(file.Name), StringComparison.OrdinalIgnoreCase))
-            {
-                validationMessages.Add($"The file {file.Name} is not of a valid file type. The allowed file types are: {string.Join(", ", FileUploadConstraints.AllowedExtensions)}");
-            }
-            if (file.Size > FileUploadConstraints.MaxFileSize)
-            {
-                validationMessages.Add($"The file {file.Name} is larger than the maximum allowed file size of {FileUploadConstraints.MaxFileSize / 1024F} MB.");
-            }
-            if (validationMessages.Any())
-            {
-                ValidationMessageStore.Add(() => Product.Images, validationMessages);
-                EditContext.NotifyValidationStateChanged();
-                inputFileId = Guid.NewGuid().ToString();
-                return;
-            }
-
-            var tempFilePath = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
-            await using FileStream fileStream = new(tempFilePath, FileMode.Create);
-            await file.OpenReadStream(file.Size).CopyToAsync(fileStream);
-
-            var fileData = new byte[file.Size];
-            fileStream.Position = 0;
-            await fileStream.ReadAsync(fileData);
-            fileStream.Close();
-
-            File.Delete(tempFilePath);
-
-            var image = new ProductImage
-			{
-				ImageData = fileData,
-                Product = Product,
-                ProductId = Product.Id 
-			};
-            Product.Images.Add(image);
-
-            StateHasChanged();
-            EditContext.NotifyFieldChanged(EditContext.Field("Images"));
-        }
-    }
-
     private string TagsList
     {
         get => string.Join(", ", Product.Tags);
         set => Product.Tags = value.Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries).Select(tag => tag.Trim()).ToList();
-    }
-
-    private void OnDragStart(int index)
-    {
-        draggedIndex = index;
-    }
-
-    private void OnDrop(int index)
-    {
-        var temp = Product.Images[index];
-        Product.Images[index] = Product.Images[draggedIndex.Value];
-        Product.Images[draggedIndex.Value] = temp;
     }
 }

@@ -110,9 +110,10 @@
         CurrentUser = await UserService.GetCurrentUser();
 
         using var context = DbFactory.CreateDbContext();
-        product = await context.Product.FirstOrDefaultAsync(m => m.Id == Id);
-        await context.Entry<Product>(product).Collection(p => p.Images).LoadAsync();
-        await context.Entry<Product>(product).Reference(p => p.CreatedUser).LoadAsync();
+        product = await context.Product
+            .Include(p => p.Images.OrderBy(i => i.Index))
+            .Include(p => p.CreatedUser)
+            .FirstOrDefaultAsync(m => m.Id == Id);
 
         if (product is null)
         {

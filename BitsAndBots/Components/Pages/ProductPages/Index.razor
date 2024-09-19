@@ -62,7 +62,8 @@
 
         var sortOption = ProductSortOptions.GetByDisplayName(SortBy);
 
-        var query = context.Product.Include(product => product.Images)
+        var query = context.Product
+            .Include(product => product.Images.OrderBy(i => i.Index))
             .Where(p => p.Title.Contains(SearchQuery));
 
         query = sortOption.SortDirection == Models.SortDirection.Ascending
