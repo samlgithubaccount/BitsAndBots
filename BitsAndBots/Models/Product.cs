@@ -3,6 +3,7 @@ using System.ComponentModel.DataAnnotations;
 
 namespace BitsAndBots.Models
 {
+    //TODO:Add proper validations
     public class Product
     {
         public long Id { get; set; }
@@ -18,7 +19,6 @@ namespace BitsAndBots.Models
         public int? Quantity { get; set; }
         public ICollection<string> Tags { get; set; } = [];
         [MinLength(1, ErrorMessage = "A minimum of 1 Image is required.")]
-        //TODO: Will list maintain sorting in db or do we need to change back to collection?
         public IList<ProductImage> Images { get; set; } = [];
         [Required]
         public string Location { get; set; }
