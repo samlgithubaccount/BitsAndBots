@@ -1,0 +1,75 @@
+﻿@page "/products"
+
+@using Microsoft.EntityFrameworkCore
+@using Microsoft.AspNetCore.Components.QuickGrid
+@using BitsAndBots.Models
+@using BitsAndBots.Data
+@inject IDbContextFactory<BitsAndBots.Data.ApplicationDbContext> DbFactory
+@rendermode InteractiveServer
+
+
+<PageTitle>Index</PageTitle>
+
+<h1>Index</h1>
+
+@* TODO: Only show when logged in or change it to dislay something like sign up? *@
+<p>
+    <a href="products/create">Create New</a>
+</p>
+
+<form @onsubmit="GetProducts">
+    <InputText @bind-Value="SearchQuery" placeholder="Search for a product..." />
+    <button class="btn btn-primary">Search</button>
+    <label for="sort-by">Sort by</label>
+    <select @bind="SortBy" @bind:after="GetProducts" name="sort-by" id="cars">
+        @foreach (var sortOption in ProductSortOptions.GetAll())
+		{
+			<option value="@sortOption.DisplayName">@sortOption.DisplayName</option>
+		})
+    </select>
+</form>
+
+@if (!Products.Any()) {
+} else {
+    foreach (var product in Products) {
+        <div>
+            <a href="@($"products/details?id={product.Id}")">
+                <img src="data:image;base64,@System.Convert.ToBase64String(product.Images.First().ImageData)" />
+                @product.Title
+            </a>
+        </div>
+    }
+}
+
+
+@code {
+    ProductSortOptions ProductSortOptions = new();
+
+    public string SearchQuery { get; set; } = "";
+    public string SortBy { get; set; }
+    public List<Product> Products { get; set; } = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        SortBy = ProductSortOptions.GetDefault().DisplayName;
+
+        await GetProducts();
+    }
+
+    private async Task GetProducts()
+    {
+        using var context = DbFactory.CreateDbContext();
+
+        var sortOption = ProductSortOptions.GetByDisplayName(SortBy);
+
+        var query = context.Product
+            .Include(product => product.Images.OrderBy(i => i.Index))
+            .Where(p => p.Title.Contains(SearchQuery));
+
+        query = sortOption.SortDirection == Models.SortDirection.Ascending
+            ? query.OrderBy(sortOption.KeySelector)
+            : query.OrderByDescending(sortOption.KeySelector);
+
+        Products = await query.ToListAsync();
+	}
+}

@@ -1,0 +1,145 @@
+﻿@using BitsAndBots.Configuration
+@using BitsAndBots.Models
+@using System.ComponentModel.DataAnnotations
+@using System.Linq.Expressions
+@inject IConfiguration Configuration
+
+@typeparam TImage where TImage : Image, new()
+
+<div class="mb-3">
+    <InputFile @key=@(inputFileId) OnChange="LoadFiles" multiple accept="@FileUploadConstraints.AllowedExtensions" class="form-control" />
+    <ValidationMessage For="@Field" class="text-danger" />
+</div>
+@for (int i = 0; i < Images.Count; ++i)
+{
+    var index = i;
+    <div class="mb-3" draggable="true" ondragover="event.preventDefault();" @ondragstart="@(() => OnDragStart(index))" @ondrop="@(() => OnDrop(index))">
+        <button class="btn btn-primary" type="button" @onclick="(()=> RemoveImage(Images[index]))">Remove</button>
+        <img src="@($"data:image/png;base64,{Convert.ToBase64String(Images[index].ImageData)}")" alt="Product Image" class="img-thumbnail" />
+    </div>
+}
+
+@code {
+    [Parameter]
+    public required EditContext EditContext { get; set; }
+    [Parameter]
+    public required ValidationMessageStore ValidationMessageStore { get; set; }
+    [Parameter]
+    public required IList<TImage> Images { get; set; }
+    [Parameter]
+    public required Expression<Func<object>> Field { get; set; }
+
+    public FileUploadConstraints FileUploadConstraints { get; set; } = new();
+
+    private string inputFileId = Guid.NewGuid().ToString();
+
+    protected override void OnInitialized()
+    {
+        FileUploadConstraints = Configuration.GetSection("FileUploadConstraints").Get<FileUploadConstraints>()!;
+    }
+
+    private void RemoveImage(TImage image)
+    {
+        Images.Remove(image);
+        for (int i = 0; i < Images.Count; ++i)
+        {
+            Images[i].Index = i;
+        }
+    }
+
+    private int? draggedIndex;
+
+    private async void LoadFiles(InputFileChangeEventArgs e)
+    {
+        ValidationMessageStore.Clear(Field);
+
+        if (Images.Count + e.FileCount > FileUploadConstraints.MaxFiles)
+        {
+            ValidationMessageStore.Add(Field, $"A maximum of {FileUploadConstraints.MaxFiles} files may be uploaded.");
+            EditContext.NotifyValidationStateChanged();
+            inputFileId = Guid.NewGuid().ToString();
+            return;
+        }
+
+        var files = e.GetMultipleFiles();
+
+        foreach (var file in files)
+        {
+            List<string> validationMessages = new();
+
+            if (!FileUploadConstraints.AllowedExtensions.Contains(Path.GetExtension(file.Name), StringComparison.OrdinalIgnoreCase))
+            {
+                validationMessages.Add($"The file {file.Name} is not of a valid file type. The allowed file types are: {string.Join(", ", FileUploadConstraints.AllowedExtensions)}");
+            }
+            if (file.Size > FileUploadConstraints.MaxFileSize)
+            {
+                validationMessages.Add($"The file {file.Name} is larger than the maximum allowed file size of {FileUploadConstraints.MaxFileSize / 1024F} MB.");
+            }
+            if (validationMessages.Any())
+            {
+                ValidationMessageStore.Add(Field, validationMessages);
+                EditContext.NotifyValidationStateChanged();
+                inputFileId = Guid.NewGuid().ToString();
+                return;
+            }
+
+            var tempFilePath = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
+            await using FileStream fileStream = new(tempFilePath, FileMode.Create);
+            await file.OpenReadStream(file.Size).CopyToAsync(fileStream);
+
+            var fileData = new byte[file.Size];
+            fileStream.Position = 0;
+            await fileStream.ReadAsync(fileData);
+            fileStream.Close();
+
+            File.Delete(tempFilePath);
+
+            var image = new TImage()
+			{
+				ImageData = fileData,
+                Index = Images.Count
+			};
+            Images.Add(image);
+
+            StateHasChanged();
+            EditContext.NotifyFieldChanged(EditContext.Field("Images"));
+        }
+    }
+
+    private void OnDragStart(int sourceIndex)
+    {
+        draggedIndex = sourceIndex;
+    }
+
+    private void OnDrop(int targetIndex)
+    {
+        if (draggedIndex is null)
+		{
+			return;
+		}
+
+        var sourceIndex = draggedIndex.Value;
+
+        var sourceImage = Images[sourceIndex];
+        sourceImage.Index = targetIndex;
+
+        if (targetIndex > sourceIndex)
+        {
+            for (int i = sourceIndex; i < targetIndex; ++i)
+            {
+                Images[i] = Images[i + 1];
+                Images[i].Index = i;
+            }
+        } 
+        else if (targetIndex < sourceIndex) 
+        {
+            for (int i = sourceIndex; i > targetIndex; --i)
+            {
+                Images[i] = Images[i - 1];
+                Images[i].Index = i;
+            }
+        }
+
+        Images[targetIndex] = sourceImage;
+    }
+}

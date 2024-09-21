@@ -1,0 +1,171 @@
+﻿@page "/Products/edit"
+
+@using BitsAndBots.Configuration
+@using BitsAndBots.Data
+@using BitsAndBots.Models
+@using BitsAndBots.Service
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.EntityFrameworkCore
+@inject IConfiguration Configuration
+@inject IDbContextFactory<BitsAndBots.Data.ApplicationDbContext> DbFactory
+@inject NavigationManager NavigationManager
+@inject UserService UserService
+
+@rendermode InteractiveServer
+
+@attribute [Authorize]
+
+<PageTitle>Edit</PageTitle>
+
+<h1>Edit</h1>
+
+<h4>Product</h4>
+<hr />
+@if (Product is null)
+{
+    <p><em>Loading...</em></p>
+}
+else
+{
+    <div class="row">
+        <div class="col-md-4">
+            <EditForm EditContext="@EditContext" method="post" OnValidSubmit="UpdateProduct" OnInvalidSubmit="ClearErrors" FormName="edit" Enhance>
+                <DataAnnotationsValidator />
+                <ValidationSummary />
+                <input type="hidden" name="Product.Id" value="@Product.Id" />
+                <div class="mb-3">
+                    <label for="title" class="form-label">Title:</label>
+                    <InputText id="title" @bind-Value="Product.Title" class="form-control" />
+                    <ValidationMessage For="() => Product.Title" class="text-danger" />
+                </div>
+                <div class="mb-3">
+                    <label for="description" class="form-label">Description:</label>
+                    <InputText id="description" @bind-Value="Product.Description" class="form-control" />
+                    <ValidationMessage For="() => Product.Description" class="text-danger" />
+                </div>
+                <div class="mb-3">
+                    <label for="price" class="form-label">Price:</label>
+                    <InputNumber id="price" @bind-Value="Product.Price" class="form-control" />
+                    <ValidationMessage For="() => Product.Price" class="text-danger" />
+                </div>
+                <div class="mb-3">
+                    <label for="quantity" class="form-label">Quantity Available:</label>
+                    <InputNumber id="quantity" @bind-Value="Product.Quantity" class="form-control" />
+                    <ValidationMessage For="() => Product.Quantity" class="text-danger" />
+                </div>
+                <div class="mb-3">
+                    <label for="tags" class="form-label">Tags:</label>
+                    <InputTextArea id="tags" @bind-Value="TagsList" class="form-control" />
+                    <ValidationMessage For="() => TagsList" class="text-danger" />
+                </div>
+                <div class="mb-3">
+                    <label for="location" class="form-label">Location:</label>
+                    <InputTextArea id="location" @bind-Value="Product.Location" class="form-control" />
+                    <ValidationMessage For="() => Product.Location" class="text-danger" />
+                </div>
+                <div class="mb-3">
+                    <ImagePicker TImage="ProductImage" EditContext="@EditContext" ValidationMessageStore="@ValidationMessageStore" Images="@Product.Images" Field="@(() => Product.Images)" />
+                </div>
+                <button type="submit" class="btn btn-primary">Save</button>
+            </EditForm>
+        </div>
+    </div>
+}
+
+<div>
+    <a href="/products">Back to List</a>
+</div>
+
+@code {
+    [SupplyParameterFromQuery]
+    public long Id { get; set; }
+
+    [SupplyParameterFromForm]
+    public Product? Product { get; set; }
+
+    private IList<ProductImage> imagesInDatabase = [];
+
+    public EditContext EditContext;
+    public ValidationMessageStore ValidationMessageStore;
+
+    public ApplicationUser CurrentUser { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        CurrentUser = await UserService.GetCurrentUser();
+
+        using var context = DbFactory.CreateDbContext();
+        Product ??= await context.Product
+            .Include(p => p.Images.OrderBy(i => i.Index))
+            .Include(p => p.CreatedUser)
+            .FirstOrDefaultAsync(m => m.Id == Id);
+
+        if (Product is null)
+        {
+            NavigationManager.NavigateTo("notfound");
+        }
+
+        imagesInDatabase = Product.Images.ToList();
+
+        EditContext = new EditContext(Product);
+        ValidationMessageStore = new ValidationMessageStore(EditContext);
+    }
+
+    public async Task UpdateProduct()
+    {
+        using var context = DbFactory.CreateDbContext();
+        context.Attach(Product!).State = EntityState.Modified;
+
+        foreach (var image in Product.Images)
+        {
+            if (image.Id == null || image.Id == 0)
+            {
+                context.Add(image);
+            } else
+            {
+                context.Entry(image).State = EntityState.Modified;
+            }
+        }
+
+        var removedImages = imagesInDatabase.Where(dbImage => !Product.Images.Any(modifiedImage => modifiedImage.Id == dbImage.Id));
+        foreach (var image in removedImages)
+        {
+            context.Entry(image).State = EntityState.Deleted;
+        }
+
+        try
+        {
+            await context.SaveChangesAsync();
+        }
+        catch (DbUpdateConcurrencyException)
+        {
+            if (!ProductExists(Product!.Id))
+            {
+                NavigationManager.NavigateTo("notfound");
+            }
+            else
+            {
+                throw;
+            }
+        }
+
+        NavigationManager.NavigateTo("/products");
+    }
+
+    public void ClearErrors()
+    {
+        ValidationMessageStore.Clear();
+    }
+
+    bool ProductExists(long id)
+    {
+        using var context = DbFactory.CreateDbContext();
+        return context.Product.Any(e => e.Id == id);
+    }
+
+    private string TagsList
+    {
+        get => string.Join(", ", Product.Tags);
+        set => Product.Tags = value.Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries).Select(tag => tag.Trim()).ToList();
+    }
+}
