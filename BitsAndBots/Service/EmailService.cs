@@ -1,4 +1,5 @@
-﻿using System.Net;
+﻿using BitsAndBots.Configuration;
+using System.Net;
 using System.Net.Mail;
 
 namespace BitsAndBots.Service
@@ -6,30 +7,25 @@ namespace BitsAndBots.Service
     public class EmailService
     {
         private SmtpClient Client;
-        private string fromAddress;
+        private EmailCredential EmailCredential;
 
-        public EmailService()
+        public EmailService(EmailCredential emailCredential)
         {
-            //TODO: Fetch details from appsettings and turn this into an actual service
-            var server = "smtp.gmail.com";
-            var port = 587;
-            fromAddress = "<add gmail address here>";
-            var password = "<add google app password here>";
-            var credentials = new NetworkCredential(fromAddress, password);
-            var useSsl = true;
+            EmailCredential = emailCredential;
+            var credentials = new NetworkCredential(emailCredential.Address, emailCredential.Password);
 
-            Client = new SmtpClient(server)
+            Client = new SmtpClient(emailCredential.Server)
             {
-                Port = port,
+                Port = emailCredential.Port,
                 Credentials = credentials,
-                EnableSsl = useSsl,
+                EnableSsl = emailCredential.UseSsl
             };
         }
 
         public void SendEmail(string toAddress, string subject, string body)
         {
             MailMessage message = new MailMessage(
-                fromAddress,
+                EmailCredential.Address,
                 toAddress,
                 subject,
                 body);

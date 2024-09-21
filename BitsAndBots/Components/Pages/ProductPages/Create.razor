@@ -1,13 +1,11 @@
 ﻿@page "/products/create"
 
-@using BitsAndBots.Configuration
 @using BitsAndBots.Data
 @using BitsAndBots.Models
 @using BitsAndBots.Service
 @using Microsoft.AspNetCore.Authorization
 @using Microsoft.AspNetCore.Identity
 @using Microsoft.EntityFrameworkCore
-@inject IConfiguration Configuration
 @inject IDbContextFactory<BitsAndBots.Data.ApplicationDbContext> DbFactory
 @inject NavigationManager NavigationManager
 @inject UserService UserService

@@ -1,9 +1,11 @@
-﻿@page "/products/details"
+﻿@page "/events/details"
 
+@using BitsAndBots.Configuration
 @using BitsAndBots.Data
 @using BitsAndBots.Service
 @using Microsoft.EntityFrameworkCore
 @using BitsAndBots.Models
+@inject IConfiguration Configuration
 @inject IDbContextFactory<BitsAndBots.Data.ApplicationDbContext> DbFactory
 @inject NavigationManager NavigationManager
 @inject UserService UserService
@@ -138,7 +140,14 @@
         productEnquiry.Price = product!.Price;
         productEnquiry.User = CurrentUser;
 
-        var emailService = new EmailService();
+        var emailCredentials = Configuration.GetSection("SenderEmailCredential").Get<EmailCredential>();
+
+        if (emailCredentials == null)
+        {
+            throw new Exception("Email credentials not found");
+        }
+
+        var emailService = new EmailService(emailCredentials);
 
         //TODO: Add product url?
         var message = string.Format(
