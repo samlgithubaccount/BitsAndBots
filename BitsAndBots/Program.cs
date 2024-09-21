@@ -69,6 +69,9 @@ app.MapAdditionalIdentityEndpoints();
 //TODO: Make it easy to setup administrators via the appsettings.json file
 using (var scope = app.Services.CreateScope())
 {
+    var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+    dbContext.Database.Migrate();
+
     var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
 
     string role = "Administrator";
