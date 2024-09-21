@@ -7,6 +7,7 @@ namespace BitsAndBots.Data
     public class ApplicationUser : IdentityUser
     {
         public ICollection<Product> Products { get; set; } = [];
+        public ICollection<Event> Events { get; set; } = [];
     }
 
 }

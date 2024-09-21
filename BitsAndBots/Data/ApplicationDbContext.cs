@@ -7,13 +7,14 @@ namespace BitsAndBots.Data
 {
     public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : IdentityDbContext<ApplicationUser, IdentityRole, String>(options)
     {
-        public DbSet<BitsAndBots.Models.Product> Product { get; set; } = default!;
+        public DbSet<Product> Product { get; set; } = default!;
+        public DbSet<Event> Event { get; set; } = default!;
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
 
-            modelBuilder.Entity<Product>(entity =>
+            modelBuilder.Entity<Product>(static entity =>
             {
                 entity.HasKey(product => product.Id);
                 entity.HasOne(product => product.CreatedUser)
@@ -24,6 +25,31 @@ namespace BitsAndBots.Data
                 entity.HasMany(product => product.Images)
                     .WithOne(image => image.Product)
                     .HasForeignKey(image => image.ProductId);
+
+                entity.Property(product => product.Tags)
+                    .HasConversion(
+                        v => string.Join(",", v),
+                        v => v.Split(',', StringSplitOptions.None)
+                    );
+            });
+
+            modelBuilder.Entity<Event>(static entity =>
+            {
+                entity.HasKey(e => e.Id);
+                entity.HasOne(e => e.CreatedUser)
+                    .WithMany(user => user.Events)
+                    .HasForeignKey(e => e.CreatedUserId)
+                    .IsRequired();
+
+                entity.HasMany(e => e.Images)
+                    .WithOne(image => image.Event)
+                    .HasForeignKey(image => image.EventId);
+
+                entity.Property(e => e.Tags)
+                    .HasConversion(
+                        v => string.Join(",", v),
+                        v => v.Split(',', StringSplitOptions.None)
+                    );
             });
         }
     }
