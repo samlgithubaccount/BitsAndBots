@@ -28,5 +28,6 @@ namespace BitsAndBots.Models
         [MinLength(1, ErrorMessage = "A minimum of 1 Image is required.")]
         public IList<FundraiserImage> Images { get; set; } = [];
         public string? Location { get; set; }
+        public ICollection<FundraiserParticipantionRegistration> ParticipationRegistrations { get; set; } = [];
     }
 }

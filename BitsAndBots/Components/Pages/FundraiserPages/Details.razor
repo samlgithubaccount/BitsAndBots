@@ -54,6 +54,36 @@
             </dd>
         </dl>
 
+        <AuthorizeView Context="authContext">
+            <Authorized>
+                <EditForm method="post" Model="participationRegistration" OnValidSubmit="SubmitParticipationRegistration" FormName="register" Enhance>
+                    @if (registrationValidationMessages.Count > 0)
+                    {
+                        <ul class ="text-danger">
+                            @foreach (var message in registrationValidationMessages)
+                            {
+                                <li class="validation-message">@message</li>
+                            }
+                        </ul>
+                    }
+                    <DataAnnotationsValidator />
+                    <div class="mb-3">
+                        <label for="participant-link" class="form-label">Url to your registration or donation page:</label>
+                        <InputText id="participant-link" @bind-Value="participationRegistration.ParticipantLink" class="form-control" />
+                        <ValidationMessage For="() => participationRegistration.ParticipantLink" class="text-danger" />
+                    </div>
+                    <button type="submit" class="btn btn-primary" disabled="@(fundraiser is null || registrationSubmitted)">Submit</button>
+                </EditForm>
+                @if (registrationSubmitted)
+                {
+                    <div>Registration submitted</div>
+                }
+            </Authorized>
+            <NotAuthorized>
+                @* TODO: Prompt login *@
+            </NotAuthorized>
+        </AuthorizeView>
+
         @if (CanCurrentUserModifyFundraiser)
         {
             <div>
@@ -67,7 +97,11 @@
 </div>
 
 @code {
+    [SupplyParameterFromForm(FormName = "register")]
+    FundraiserParticipantionRegistration participationRegistration { get; set; } = new();
     Fundraiser? fundraiser;
+    bool registrationSubmitted;
+    IList<string> registrationValidationMessages = new List<string>();
 
     public ApplicationUser CurrentUser { get; set; }
 
@@ -100,6 +134,33 @@
         context.Fundraiser.Remove(fundraiser!);
         await context.SaveChangesAsync();
         NavigationManager.NavigateTo("/fundraisers");
+    }
+
+    public async Task SubmitParticipationRegistration()
+    {
+        if (registrationSubmitted)
+		{
+			return;
+		}
+
+        registrationValidationMessages.Clear();
+
+        using var context = DbFactory.CreateDbContext();
+
+        var existingRegistration = await context.FundraiserParticipationRegistration
+            .FirstOrDefaultAsync(registration => registration.UserId == CurrentUser.Id && registration.FundraiserId == fundraiser.Id);
+
+        if (existingRegistration != null) {
+            registrationValidationMessages.Add("You have already registered for this fundraiser.");
+            return;
+        }
+
+        participationRegistration.FundraiserId = fundraiser!.Id;
+        participationRegistration.UserId = CurrentUser.Id;
+
+        context.FundraiserParticipationRegistration.Add(participationRegistration);
+        await context.SaveChangesAsync();
+        registrationSubmitted = true;
     }
 
     public async Task<bool> UserCreatedFundraiserOrIsAdministrator()

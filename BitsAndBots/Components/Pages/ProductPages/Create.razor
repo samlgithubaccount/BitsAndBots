@@ -78,9 +78,6 @@
     {
         using var context = DbFactory.CreateDbContext();
 
-        context.Attach(CurrentUser);
-
-        Product.CreatedUser = CurrentUser;
         Product.CreatedUserId = CurrentUser.Id;
 
         var currentDateTime = DateTime.Now;

@@ -10,6 +10,7 @@ namespace BitsAndBots.Data
         public DbSet<Product> Product { get; set; } = default!;
         public DbSet<Event> Event { get; set; } = default!;
         public DbSet<Fundraiser> Fundraiser { get; set; } = default!;
+        public DbSet<FundraiserParticipantionRegistration> FundraiserParticipationRegistration { get; set; } = default!;
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -70,6 +71,22 @@ namespace BitsAndBots.Data
                         v => string.Join(",", v),
                         v => v.Split(',', StringSplitOptions.None)
                     );
+            });
+
+            modelBuilder.Entity<FundraiserParticipantionRegistration>(static entity =>
+            {
+                entity.HasKey(registration => registration.Id);
+                entity.HasOne(registration => registration.User)
+                    .WithMany(user => user.FundraiserRegistrations)
+                    .HasForeignKey(registration => registration.UserId)
+                    .IsRequired()
+                    .OnDelete(DeleteBehavior.NoAction);
+
+                entity.HasOne(registration => registration.Fundraiser)
+                    .WithMany(fundraiser => fundraiser.ParticipationRegistrations)
+                    .HasForeignKey(registration => registration.FundraiserId)
+                    .IsRequired()
+                    .OnDelete(DeleteBehavior.NoAction); ;
             });
         }
     }

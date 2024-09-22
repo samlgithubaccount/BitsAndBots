@@ -70,7 +70,7 @@
                             <ValidationMessage For="() => productEnquiry.Quantity" class="text-danger" />
                         </div>
                     }
-                    <button type="submit" class="btn btn-primary" disabled="@(product is null)">Submit</button>
+                    <button type="submit" class="btn btn-primary" disabled="@(product is null || enquirySubmitted)">Submit</button>
                 </EditForm>
                 @if (enquirySubmitted)
                 {
@@ -135,6 +135,11 @@
 
     public void SubmitEnquiry()
     {
+        if (enquirySubmitted)
+		{
+			return;
+		}
+
         productEnquiry.Product = product!;
         productEnquiry.Title = product!.Title;
         productEnquiry.Price = product!.Price;
