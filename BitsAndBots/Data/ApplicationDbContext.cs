@@ -9,6 +9,7 @@ namespace BitsAndBots.Data
     {
         public DbSet<Product> Product { get; set; } = default!;
         public DbSet<Event> Event { get; set; } = default!;
+        public DbSet<Fundraiser> Fundraiser { get; set; } = default!;
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -44,6 +45,25 @@ namespace BitsAndBots.Data
                 entity.HasMany(e => e.Images)
                     .WithOne(image => image.Event)
                     .HasForeignKey(image => image.EventId);
+
+                entity.Property(e => e.Tags)
+                    .HasConversion(
+                        v => string.Join(",", v),
+                        v => v.Split(',', StringSplitOptions.None)
+                    );
+            });
+
+            modelBuilder.Entity<Fundraiser>(static entity =>
+            {
+                entity.HasKey(fundraiser => fundraiser.Id);
+                entity.HasOne(fundraiser => fundraiser.CreatedUser)
+                    .WithMany(user => user.Fundraisers)
+                    .HasForeignKey(fundraiser => fundraiser.CreatedUserId)
+                    .IsRequired();
+
+                entity.HasMany(fundraiser => fundraiser.Images)
+                    .WithOne(image => image.Fundraiser)
+                    .HasForeignKey(image => image.FundraiserId);
 
                 entity.Property(e => e.Tags)
                     .HasConversion(
