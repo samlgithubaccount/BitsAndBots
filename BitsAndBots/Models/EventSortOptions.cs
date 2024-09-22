@@ -6,7 +6,7 @@ namespace BitsAndBots.Models
         private Dictionary<string, SortOption<Event, object>> SortOptions = new() {
             { "Title Ascending", new() { DisplayName = "Title Ascending", SortDirection = SortDirection.Ascending, KeySelector = p => p.Title } },
             { "Title Descending", new () { DisplayName = "Title Descending", SortDirection = SortDirection.Descending, KeySelector = p => p.Title } },
-            { "Earliest First", new () { DisplayName = "Earliest First", SortDirection = SortDirection.Descending, KeySelector = p => p.StartTime } }
+            { "Earliest First", new () { DisplayName = "Earliest First", SortDirection = SortDirection.Ascending, KeySelector = p => p.StartTime } }
         };
 
         public IEnumerable<SortOption<Event, object>> GetAll()
@@ -21,7 +21,7 @@ namespace BitsAndBots.Models
 
         public SortOption<Event, object> GetDefault()
         {
-            return SortOptions["Title Ascending"];
+            return SortOptions["Earliest First"];
         }
     }
 }

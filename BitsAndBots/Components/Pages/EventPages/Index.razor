@@ -36,6 +36,20 @@
             <a href="@($"events/details?id={e.Id}")">
                 <img src="data:image;base64,@System.Convert.ToBase64String(e.Images.First().ImageData)" />
                 @e.Title
+                @e.StartTime.ToString("yyyy-MM-dd HH:mm")
+                @if (DateTime.Now >= e.StartTime && DateTime.Now < e.EndTime)
+                {
+                    <span class="badge bg-success">On Now</span>
+                }
+                    //TODO: Do we want to add a filter for past events
+                @* 				else if (DateTime.Now < e.StartTime)
+        {
+        <span class="badge bg-warning">Upcoming</span>
+        } *@
+                @* 				else
+        {
+        <span class="badge bg-danger">Expired</span>
+        } *@
             </a>
         </div>
     }
@@ -64,7 +78,8 @@
 
         var query = context.Event
             .Include(e => e.Images.OrderBy(i => i.Index))
-            .Where(p => p.Title.Contains(SearchQuery));
+            .Where(e => e.EndTime > DateTime.Now)
+            .Where(e => e.Title.Contains(SearchQuery));
 
         query = sortOption.SortDirection == Models.SortDirection.Ascending
             ? query.OrderBy(sortOption.KeySelector)

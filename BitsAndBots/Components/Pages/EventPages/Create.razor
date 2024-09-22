@@ -36,13 +36,13 @@
                 <ValidationMessage For="() => Event.Description" class="text-danger" />
             </div>
             <div class="mb-3">
-                <label for="start-time" class="form-label">Start Time:</label>
+                <label for="start-time" class="form-label">Start:</label>
                 <InputDate Type="InputDateType.DateTimeLocal" min="@DateTime.Now.ToString("yyyy-MM-ddTHH:mm")" id="start-time" @bind-Value="Event.StartTime" class="form-control" />
                 <ValidationMessage For="() => Event.StartTime" class="text-danger" />
             </div>
             <div class="mb-3">
-                <label for="end-time" class="form-label">End Time:</label>
-                <InputDate Type="InputDateType.DateTimeLocal" min="@DateTime.Now.ToString("yyyy-MM-ddTHH:mm")" id="end-time" @bind-Value="Event.EndTime" class="form-control" />
+                <label for="end-time" class="form-label">End:</label>
+                <InputDate Type="InputDateType.DateTimeLocal" min="@Event.StartTime.ToString("yyyy-MM-ddTHH:mm")" id="end-time" @bind-Value="Event.EndTime" class="form-control" />
                 <ValidationMessage For="() => Event.EndTime" class="text-danger" />
             </div>
             <div class="mb-3">
@@ -117,6 +117,7 @@
     {
         EditContext = new EditContext(Event);
         ValidationMessageStore = new ValidationMessageStore(EditContext);
+        EditContext.OnFieldChanged += EditContext_OnFieldChanged;
     }
 
     private string TagsList
@@ -124,4 +125,16 @@
         get => string.Join(", ", Event.Tags);
         set => Event.Tags = value.Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries).Select(tag => tag.Trim()).ToList();
     }
+
+    private void EditContext_OnFieldChanged(object sender, FieldChangedEventArgs e)
+    {
+        if (e.FieldIdentifier.FieldName == "StartTime")
+        {
+            if (Event.EndTime <= Event.StartTime)
+            {
+                Event.EndTime = Event.StartTime.AddHours(1);
+            }
+        }
+    }
+
 }
