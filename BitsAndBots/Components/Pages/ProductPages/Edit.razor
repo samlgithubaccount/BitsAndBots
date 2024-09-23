@@ -1,12 +1,10 @@
-﻿@page "/products/edit"
+﻿@page "/Products/edit"
 
-@using BitsAndBots.Configuration
 @using BitsAndBots.Data
-@using BitsAndBots.Models
 @using BitsAndBots.Service
 @using Microsoft.AspNetCore.Authorization
 @using Microsoft.EntityFrameworkCore
-@inject IConfiguration Configuration
+@using BitsAndBots.Models
 @inject IDbContextFactory<BitsAndBots.Data.ApplicationDbContext> DbFactory
 @inject NavigationManager NavigationManager
 @inject UserService UserService
@@ -29,7 +27,7 @@ else
 {
     <div class="row">
         <div class="col-md-4">
-            <EditForm EditContext="@EditContext" method="post" OnValidSubmit="UpdateProduct" OnInvalidSubmit="ClearErrors" FormName="edit" Enhance>
+            <EditForm method="post" Model="Product" OnValidSubmit="UpdateProduct" FormName="edit" Enhance>
                 <DataAnnotationsValidator />
                 <ValidationSummary />
                 <input type="hidden" name="Product.Id" value="@Product.Id" />
@@ -49,22 +47,9 @@ else
                     <ValidationMessage For="() => Product.Price" class="text-danger" />
                 </div>
                 <div class="mb-3">
-                    <label for="quantity" class="form-label">Quantity Available:</label>
+                    <label for="quantity" class="form-label">Quantity:</label>
                     <InputNumber id="quantity" @bind-Value="Product.Quantity" class="form-control" />
                     <ValidationMessage For="() => Product.Quantity" class="text-danger" />
-                </div>
-                <div class="mb-3">
-                    <label for="tags" class="form-label">Tags:</label>
-                    <InputTextArea id="tags" @bind-Value="TagsList" class="form-control" />
-                    <ValidationMessage For="() => TagsList" class="text-danger" />
-                </div>
-                <div class="mb-3">
-                    <label for="location" class="form-label">Location:</label>
-                    <InputTextArea id="location" @bind-Value="Product.Location" class="form-control" />
-                    <ValidationMessage For="() => Product.Location" class="text-danger" />
-                </div>
-                <div class="mb-3">
-                    <ImagePicker TImage="ProductImage" EditContext="@EditContext" ValidationMessageStore="@ValidationMessageStore" Images="@Product.Images" Field="@(() => Product.Images)" />
                 </div>
                 <button type="submit" class="btn btn-primary">Save</button>
             </EditForm>
@@ -83,11 +68,6 @@ else
     [SupplyParameterFromForm]
     public Product? Product { get; set; }
 
-    private IList<ProductImage> imagesInDatabase = [];
-
-    public EditContext EditContext;
-    public ValidationMessageStore ValidationMessageStore;
-
     public ApplicationUser CurrentUser { get; set; }
 
     protected override async Task OnInitializedAsync()
@@ -95,45 +75,20 @@ else
         CurrentUser = await UserService.GetCurrentUser();
 
         using var context = DbFactory.CreateDbContext();
-        Product ??= await context.Product
-            .Include(p => p.Images.OrderBy(i => i.Index))
-            .Include(p => p.CreatedUser)
-            .FirstOrDefaultAsync(m => m.Id == Id);
+        Product ??= await context.Product.FirstOrDefaultAsync(m => m.Id == Id);
 
         if (Product is null)
         {
             NavigationManager.NavigateTo("notfound");
         }
-
-        imagesInDatabase = Product.Images.ToList();
-
-        EditContext = new EditContext(Product);
-        ValidationMessageStore = new ValidationMessageStore(EditContext);
     }
 
+    // To protect from overposting attacks, enable the specific properties you want to bind to.
+    // For more details, see https://aka.ms/RazorPagesCRUD.
     public async Task UpdateProduct()
     {
         using var context = DbFactory.CreateDbContext();
         context.Attach(Product!).State = EntityState.Modified;
-
-        foreach (var image in Product.Images)
-        {
-            if (image.Id == null || image.Id == 0)
-            {
-                context.Add(image);
-            } else
-            {
-                context.Entry(image).State = EntityState.Modified;
-            }
-        }
-
-        var removedImages = imagesInDatabase.Where(dbImage => !Product.Images.Any(modifiedImage => modifiedImage.Id == dbImage.Id));
-        foreach (var image in removedImages)
-        {
-            context.Entry(image).State = EntityState.Deleted;
-        }
-
-        Product.LastUpdatedTimestamp = DateTime.Now;
 
         try
         {
@@ -154,20 +109,9 @@ else
         NavigationManager.NavigateTo("/products");
     }
 
-    public void ClearErrors()
-    {
-        ValidationMessageStore.Clear();
-    }
-
     bool ProductExists(long id)
     {
         using var context = DbFactory.CreateDbContext();
         return context.Product.Any(e => e.Id == id);
-    }
-
-    private string TagsList
-    {
-        get => string.Join(", ", Product.Tags);
-        set => Product.Tags = value.Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries).Select(tag => tag.Trim()).ToList();
     }
 }

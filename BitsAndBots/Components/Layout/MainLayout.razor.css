@@ -1,3 +1,9 @@
+@font-face {
+    font-family: gills-bold;
+    src: url(fonts/gill-sans-ultra-bold.ttf);
+    font-weight: bold;
+}
+
 .page {
     position: relative;
     display: flex;
@@ -13,50 +19,99 @@ a.navbar-brand {
     word-break: break-all;
     display: contents;
     color: #0f454a;
-    font: bold 2vw 'Trebuchet MS';
-    margin-bottom: 10vw;
+    font: bold 2vh 'gills-bold';
+    margin-bottom: 10vh;
+    height: 30vh;
+}
+
+.logo {
+    overflow: hidden;
+    width: auto;
+    height: 100%;
+}
+
+a.active {
+    background-color: #E6651F;
+}
+
+p.nav-text {
+    font: 2.5vh arial;
+    color: #F3E1D8;
+    text-align: center;
+    margin: auto;
+}
+
+a.nav-link.active {
+    font: 2.5vh arial;
+    color: black;
+    text-align: center;
+    margin: auto;
+}
+
+p.nav-text-2 {
+    color: #FB5454;
+}
+
+.total-head {
+    background-color: #FFFFFF;
+}
+
+.top-head {
+    height: 10vh;
+    max-width:100%;
+    overflow: hidden;
+}
+
+.navbar {
+    background-color: #FB5454;
+    max-width:auto;
 }
 
 .profile {
+    display: flex;
     float: right;
-    font:2vw arial;
-    margin:1vw;
+    font: 3vh arial;
+    color: #0f454a;
+    margin: 1vw;
 }
 
 a {
-    color: #0077cc;
+    color: #dd6236;
+    text-decoration: none;
 }
 
 .btn-primary {
     color: #fff;
     background-color: #1b6ec2;
-    border-color: #1861ac;
 }
 
 .nav-item {
     padding-left: 2vw;
     padding-right: 2vw;
+    font: 1.5vw arial;
+    color: #0f454a;
 }
 
-.nav-pills .nav-link.active, .nav-pills .show > .nav-link {
-    color: #fff;
-    background-color: #1b6ec2;
-    border-color: #1861ac;
-}
+
+
 
 .border-top {
-    border-top: 1px solid #e5e5e5;
+    border-top: 1px solid #F3E1D8;
 }
 
 .border-bottom {
-    border-bottom: 1px solid #e5e5e5;
+    border-bottom: 1px solid #F3E1D8;
 }
 .border-right {
-    border-right: 1px solid #e5e5e5;
+    border-right: 1px solid #F3E1D8;
+}
+
+.border-right2 {
+    border-right: 3px solid #FB5454;
 }
 
 .box-shadow {
-    box-shadow: 0 .25rem .75rem rgba(0, 0, 0, .05);
+    box-shadow: 0 .25rem .75rem #D8D8D8;
 }
 
 button.accept-policy {
@@ -65,11 +120,14 @@ button.accept-policy {
 }
 
 .footer {
-    position: absolute;
-    bottom: 0vh;
+    line-height: 10vh;
+    background-color: #FB5454;
+    position: fixed;
+    left: 0;
+    bottom: 0;
     width: 100%;
-    white-space: nowrap;
-    line-height: 60px;
+    text-align: center;
+    z-index: 100;
 }
 
 
@@ -93,3 +151,12 @@ button.accept-policy {
         right: 0.75rem;
         top: 0.5rem;
     }
+
+@media (max-width: 540px) {
+    a.navbar-brand {
+        display: none;
+    }
+    p.nav-text {
+        font: 1.5vh arial;
+    }
+}

@@ -1,84 +1,68 @@
 ﻿@inherits LayoutComponentBase
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.AspNetCore.Identity
 
-@implements IDisposable
 
-@inject NavigationManager NavigationManager
-
-<img style="overflow:hidden;width:5vw;height:100%;" src=" imgs/bitsandbotslogo.svg" />
-<a class="navbar-brand" asp-area="" asp-page="/Home">Bits and Bots</a>
-<div class="profile">profile</div>
 <div class="page">
+    <article class="total-head box-shadow mb-3">
+        <div class="container top-head">
+            <img class="logo" src=" imgs/bitsandbotslogo.svg" />
+            <a class="navbar-brand" asp-area="" asp-page="/Home">Bits and Bots</a>
+            <div class="profile">
 
-    <main>
-        <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light bg-white border-bottom box-shadow mb-3">
-            <div class="container">
-                
+
+                <NavLink script="border-right: 3px solid #FB5454;" class="nav-link border-right2" href="/account/login" Match="NavLinkMatch.All">
+                    <span class="nav-text" aria-hidden="true"></span>
+                    <p class="nav-text-2">log in</p>
+                </NavLink>
+                <NavLink class="nav-link" href="/account/register" Match="NavLinkMatch.All">
+                    <span class="nav-text" aria-hidden="true"></span>
+                    <p class="nav-text-2">Register</p>
+                </NavLink>
+            </div>
+        </div>
+        
+        <nav class="navbar navbar-expand border-bottom">
+            <div style="width: 100%;" class="container">
+
                 <div>
                     <ul class="navbar-nav flex-grow-1">
                         <li class="nav-item border-right">
                             <NavLink class="nav-link" href="" Match="NavLinkMatch.All">
-                                <span class="bi bi-house-door-fill-nav-menu" aria-hidden="true"></span> Home
-                                <img style="overflow:hidden;width:2vw;height:100%;" src=" imgs/home.svg" />
+                                <span aria-hidden="true"></span> 
+                                <p class="nav-text">HOME</p>
+                                <! img style="overflow:hidden;width:2vw;height:100%;" src=" imgs/home.svg" />
                             </NavLink>
                         </li>
                         <li class="nav-item border-right">
-                            <NavLink class="nav-link" href="/products">
-                                <span class="bi bi-house-door-fill-nav-menu" aria-hidden="true"></span> Products
-                                <img style="overflow:hidden;width:2vw;height:100%;" src=" imgs/products.svg" />
+                            <NavLink class="nav-link" href="/products" Match="NavLinkMatch.All">
+                                <span aria-hidden="true"></span> 
+                                <p class="nav-text">PRODUCTS</p>
+                                <! img style="overflow:hidden;width:2vw;height:100%;" src=" imgs/products.svg" />
                             </NavLink>
                         </li>
                         <li class="nav-item border-right">
-                            <NavLink class="nav-link" href="/events">
-                                <span class="bi bi-house-door-fill-nav-menu" aria-hidden="true"></span> Events
-                                <img style="overflow:hidden;width:2vw;height:100%;" src=" imgs/events.svg" />
+                            <NavLink class="nav-link" href="/events" Match="NavLinkMatch.All">
+                                <span aria-hidden="true"></span> 
+                                <p class="nav-text">EVENTS</p>
+                                <! img style="overflow:hidden;width:2vw;height:100%;" src=" imgs/events.svg" />
                             </NavLink>
                         </li>
                         <li class="nav-item">
-                            <NavLink class="nav-link" href="/fundraisers">
-                                <span class="bi bi-house-door-fill-nav-menu" aria-hidden="true"></span> Fundraisers
-                                <img style="overflow:hidden;width:2vw;height:100%;" src=" imgs/fundraiser.svg" />
+                            <NavLink class="nav-link" href="/fundraisers" Match="NavLinkMatch.All">
+                                <span aria-hidden="true"></span> 
+                                <p class="nav-text">FUNDRAISERS</p>
+                                <! img style="overflow:hidden;width:2vw;height:100%;" src=" imgs/fundraiser.svg" />
                             </NavLink>
                         </li>
-                        <li class="nav-item">
-                            <NavLink class="nav-link" href="/fundraisers">
-                                <span class="bi bi-house-door-fill-nav-menu" aria-hidden="true"></span> Fundraisers
-                                <img style="overflow:hidden;width:2vw;height:100%;" src=" imgs/fundraiser.svg" />
-                            </NavLink>
-                        </li>
-                        <AuthorizeView>
-                            <Authorized>
-                                <li class="nav-item">
-                                    <NavLink class="nav-link" href="Account/Manage">
-                                        <span class="bi bi-person-fill-nav-menu" aria-hidden="true"></span> @context.User.Identity?.Name
-                                    </NavLink>
-                                </li>
-                                <li class="nav-item">
-                                    <form action="Account/Logout" method="post">
-                                        <AntiforgeryToken />
-                                        <input type="hidden" name="ReturnUrl" value="@currentUrl" />
-                                        <button type="submit" class="nav-link">
-                                            <span class="bi bi-arrow-bar-left-nav-menu" aria-hidden="true"></span> Logout
-                                        </button>
-                                    </form>
-                                </li>
-                            </Authorized>
-                            <NotAuthorized>
-                                <li class="nav-item">
-                                    <NavLink class="nav-link" href="Account/Register">
-                                        <span class="bi bi-person-nav-menu" aria-hidden="true"></span> Register
-                                    </NavLink>
-                                </li>
-                                <li class="nav-item">
-                                    <NavLink class="nav-link" href="Account/Login">
-                                        <span class="bi bi-person-badge-nav-menu" aria-hidden="true"></span> Login
-                                    </NavLink>
-                                </li>
-                            </NotAuthorized>
-                        </AuthorizeView>
                     </ul>
                 </div>
             </div>
         </nav>
+    </article>
+    
+    <main>
+        
 
         <article class="content px-4">
             @Body
@@ -89,6 +73,10 @@
     </main>
 </div>
 
+<article class="footer">
+    feet
+</article>
+
 
 
 <div id="blazor-error-ui">
@@ -97,23 +85,4 @@
     <a class="dismiss">🗙</a>
 </div>
 
-@code {
-    private string? currentUrl;
 
-    protected override void OnInitialized()
-    {
-        currentUrl = NavigationManager.ToBaseRelativePath(NavigationManager.Uri);
-        NavigationManager.LocationChanged += OnLocationChanged;
-    }
-
-    private void OnLocationChanged(object? sender, LocationChangedEventArgs e)
-    {
-        currentUrl = NavigationManager.ToBaseRelativePath(e.Location);
-        StateHasChanged();
-    }
-
-    public void Dispose()
-    {
-        NavigationManager.LocationChanged -= OnLocationChanged;
-    }
-}
