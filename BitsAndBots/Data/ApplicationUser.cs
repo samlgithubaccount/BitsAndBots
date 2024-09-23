@@ -7,14 +7,6 @@ namespace BitsAndBots.Data
     public class ApplicationUser : IdentityUser
     {
         public ICollection<Product> Products { get; set; } = [];
-
-        public string FirstName { get; set; } = "";
-
-        public string LastName { get; set; } = "";
-
-        public string PhoneNumber { get; set; } = "";
-
-
     }
 
 }
