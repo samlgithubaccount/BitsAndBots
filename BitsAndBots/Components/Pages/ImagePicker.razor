@@ -14,7 +14,7 @@
 {
     var index = i;
     <div class="mb-3" draggable="true" ondragover="event.preventDefault();" @ondragstart="@(() => OnDragStart(index))" @ondrop="@(() => OnDrop(index))">
-        <button class="btn btn-primary" @onclick="(()=> RemoveImage(Images[index]))">Remove</button>
+        <button class="btn btn-primary" type="button" @onclick="(()=> RemoveImage(Images[index]))">Remove</button>
         <img src="@($"data:image/png;base64,{Convert.ToBase64String(Images[index].ImageData)}")" alt="Product Image" class="img-thumbnail" />
     </div>
 }
@@ -25,7 +25,7 @@
     [Parameter]
     public required ValidationMessageStore ValidationMessageStore { get; set; }
     [Parameter]
-    public IList<TImage> Images { get; set; }
+    public required IList<TImage> Images { get; set; }
     [Parameter]
     public required Expression<Func<object>> Field { get; set; }
 
@@ -41,11 +41,15 @@
     private void RemoveImage(TImage image)
     {
         Images.Remove(image);
+        for (int i = 0; i < Images.Count; ++i)
+        {
+            Images[i].Index = i;
+        }
     }
 
     private int? draggedIndex;
 
-    private async void LoadFiles(InputFileChangeEventArgs e)
+    private async Task LoadFiles(InputFileChangeEventArgs e)
     {
         ValidationMessageStore.Clear(Field);
 
@@ -92,7 +96,8 @@
 
             var image = new TImage()
 			{
-				ImageData = fileData
+				ImageData = fileData,
+                Index = Images.Count
 			};
             Images.Add(image);
 
@@ -101,15 +106,40 @@
         }
     }
 
-    private void OnDragStart(int index)
+    private void OnDragStart(int sourceIndex)
     {
-        draggedIndex = index;
+        draggedIndex = sourceIndex;
     }
 
-    private void OnDrop(int index)
+    private void OnDrop(int targetIndex)
     {
-        var temp = Images[index];
-        Images[index] = Images[draggedIndex.Value];
-        Images[draggedIndex.Value] = temp;
+        if (draggedIndex is null)
+		{
+			return;
+		}
+
+        var sourceIndex = draggedIndex.Value;
+
+        var sourceImage = Images[sourceIndex];
+        sourceImage.Index = targetIndex;
+
+        if (targetIndex > sourceIndex)
+        {
+            for (int i = sourceIndex; i < targetIndex; ++i)
+            {
+                Images[i] = Images[i + 1];
+                Images[i].Index = i;
+            }
+        } 
+        else if (targetIndex < sourceIndex) 
+        {
+            for (int i = sourceIndex; i > targetIndex; --i)
+            {
+                Images[i] = Images[i - 1];
+                Images[i].Index = i;
+            }
+        }
+
+        Images[targetIndex] = sourceImage;
     }
 }

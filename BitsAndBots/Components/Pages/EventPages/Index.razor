@@ -1,0 +1,90 @@
+﻿@page "/events"
+
+@using Microsoft.EntityFrameworkCore
+@using Microsoft.AspNetCore.Components.QuickGrid
+@using BitsAndBots.Models
+@using BitsAndBots.Data
+@inject IDbContextFactory<BitsAndBots.Data.ApplicationDbContext> DbFactory
+@rendermode InteractiveServer
+
+
+<PageTitle>Index</PageTitle>
+
+<h1>Index</h1>
+
+@* TODO: Only show when logged in or change it to dislay something like sign up? *@
+<p>
+    <a href="events/create">Create New</a>
+</p>
+
+<form @onsubmit="GetEvents">
+    <InputText @bind-Value="SearchQuery" placeholder="Search for an event..." />
+    <button class="btn btn-primary">Search</button>
+    <label for="sort-by">Sort by</label>
+    <select @bind="SortBy" @bind:after="GetEvents" name="sort-by" id="cars">
+        @foreach (var sortOption in EventSortOptions.GetAll())
+		{
+			<option value="@sortOption.DisplayName">@sortOption.DisplayName</option>
+		})
+    </select>
+</form>
+
+@if (!Events.Any()) {
+} else {
+    foreach (var e in Events) {
+        <div>
+            <a href="@($"events/details?id={e.Id}")">
+                <img src="data:image;base64,@System.Convert.ToBase64String(e.Images.First().ImageData)" />
+                @e.Title
+                @e.StartTime.ToString("yyyy-MM-dd HH:mm")
+                @if (DateTime.Now >= e.StartTime && DateTime.Now < e.EndTime)
+                {
+                    <span class="badge bg-success">On Now</span>
+                }
+                    //TODO: Do we want to add a filter for past events
+                @* 				else if (DateTime.Now < e.StartTime)
+        {
+        <span class="badge bg-warning">Upcoming</span>
+        } *@
+                @* 				else
+        {
+        <span class="badge bg-danger">Expired</span>
+        } *@
+            </a>
+        </div>
+    }
+}
+
+
+@code {
+    EventSortOptions EventSortOptions = new();
+
+    public string SearchQuery { get; set; } = "";
+    public string SortBy { get; set; }
+    public List<Event> Events { get; set; } = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        SortBy = EventSortOptions.GetDefault().DisplayName;
+
+        await GetEvents();
+    }
+
+    private async Task GetEvents()
+    {
+        using var context = DbFactory.CreateDbContext();
+
+        var sortOption = EventSortOptions.GetByDisplayName(SortBy);
+
+        var query = context.Event
+            .Include(e => e.Images.OrderBy(i => i.Index))
+            .Where(e => e.EndTime > DateTime.Now)
+            .Where(e => e.Title.Contains(SearchQuery));
+
+        query = sortOption.SortDirection == Models.SortDirection.Ascending
+            ? query.OrderBy(sortOption.KeySelector)
+            : query.OrderByDescending(sortOption.KeySelector);
+
+        Events = await query.ToListAsync();
+	}
+}

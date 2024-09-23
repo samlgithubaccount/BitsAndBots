@@ -1,0 +1,132 @@
+﻿@page "/fundraisers/create"
+
+@using BitsAndBots.Data
+@using BitsAndBots.Models
+@using BitsAndBots.Service
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.AspNetCore.Identity
+@using Microsoft.EntityFrameworkCore
+@inject IDbContextFactory<BitsAndBots.Data.ApplicationDbContext> DbFactory
+@inject NavigationManager NavigationManager
+@inject UserService UserService
+
+@rendermode InteractiveServer
+
+@attribute [Authorize]
+
+<PageTitle>Create</PageTitle>
+
+<h1>Create</h1>
+
+<h4>Fundraiser</h4>
+<hr />
+<div class="row">
+    <div class="col-md-4">
+        <EditForm EditContext="@EditContext" method="post" OnValidSubmit="AddFundraiser" OnInvalidSubmit="ClearErrors" FormName="create" Enhance>
+            <DataAnnotationsValidator />
+            <ValidationSummary class="text-danger" />
+            <div class="mb-3">
+                <label for="title" class="form-label">Title:</label> 
+                <InputText id="title" @bind-Value="Fundraiser.Title" class="form-control" /> 
+                <ValidationMessage For="() => Fundraiser.Title" class="text-danger" />
+            </div>        
+            <div class="mb-3">
+                <label for="description" class="form-label">Description:</label> 
+                <InputTextArea id="description" @bind-Value="Fundraiser.Description" class="form-control" />
+                <ValidationMessage For="() => Fundraiser.Description" class="text-danger" />
+            </div>
+            <div class="mb-3">
+                <label for="start-time" class="form-label">Start:</label>
+                <InputDate Type="InputDateType.DateTimeLocal" min="@DateTime.Now.ToString("yyyy-MM-ddTHH:mm")" id="start-time" @bind-Value="Fundraiser.StartTime" class="form-control" />
+                <ValidationMessage For="() => Fundraiser.StartTime" class="text-danger" />
+            </div>
+            <div class="mb-3">
+                <label for="end-time" class="form-label">End:</label>
+                <InputDate Type="InputDateType.DateTimeLocal" min="@Fundraiser.StartTime.ToString("yyyy-MM-ddTHH:mm")" id="end-time" @bind-Value="Fundraiser.EndTime" class="form-control" />
+                <ValidationMessage For="() => Fundraiser.EndTime" class="text-danger" />
+            </div>
+            <div class="mb-3">
+                <label for="fundraiser-link" class="form-label">Fundraiser Link:</label>
+                <InputText id="fundraiser-link" @bind-Value="Fundraiser.FundraiserLink" class="form-control" />
+                <ValidationMessage For="() => Fundraiser.FundraiserLink" class="text-danger" />
+            </div>
+            <div class="mb-3">
+                <label for="tags" class="form-label">Tags:</label>
+                <InputTextArea id="tags" @bind-Value="TagsList" class="form-control" />
+                <ValidationMessage For="() => TagsList" class="text-danger" />
+            </div>
+            <div class="mb-3">
+                <label for="location" class="form-label">Location:</label>
+                <InputTextArea id="location" @bind-Value="Fundraiser.Location" class="form-control" />
+                <ValidationMessage For="() => Fundraiser.Location" class="text-danger" />
+            </div>
+            <ImagePicker TImage="FundraiserImage" EditContext="@EditContext" ValidationMessageStore="@ValidationMessageStore" Images="@Fundraiser.Images" Field="@(() => Fundraiser.Images)" />
+            <button @onclick="ClearErrors" type="submit" class="btn btn-primary">Create</button>
+        </EditForm>
+    </div>
+</div>
+
+<div>
+    <a href="/fundraisers">Back to List</a>
+</div>
+
+@code {
+    [SupplyParameterFromForm]
+    public Fundraiser Fundraiser { get; set; } = new();
+
+    public EditContext EditContext;
+    public ValidationMessageStore ValidationMessageStore;
+
+    public ApplicationUser CurrentUser { get; set; }
+
+    public async Task AddFundraiser()
+    {
+        using var context = DbFactory.CreateDbContext();
+
+        Fundraiser.CreatedUserId = CurrentUser.Id;
+
+        var currentDateTime = DateTime.Now;
+        Fundraiser.CreatedTimestamp = currentDateTime;
+        Fundraiser.LastUpdatedTimestamp = currentDateTime;
+
+        context.Fundraiser.Add(Fundraiser);
+        await context.SaveChangesAsync();
+
+        NavigationManager.NavigateTo("/fundraisers");
+    }
+
+    public void ClearErrors()
+    {
+        ValidationMessageStore.Clear();
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        CurrentUser = await UserService.GetCurrentUser();
+    }
+
+    protected override void OnInitialized()
+    {
+        EditContext = new EditContext(Fundraiser);
+        ValidationMessageStore = new ValidationMessageStore(EditContext);
+        EditContext.OnFieldChanged += EditContext_OnFieldChanged;
+    }
+
+    private string TagsList
+    {
+        get => string.Join(", ", Fundraiser.Tags);
+        set => Fundraiser.Tags = value.Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries).Select(tag => tag.Trim()).ToList();
+    }
+
+    private void EditContext_OnFieldChanged(object sender, FieldChangedEventArgs e)
+    {
+        if (e.FieldIdentifier.FieldName == "StartTime")
+        {
+            if (Fundraiser.EndTime <= Fundraiser.StartTime)
+            {
+                Fundraiser.EndTime = Fundraiser.StartTime.AddHours(1);
+            }
+        }
+    }
+
+}

@@ -1,10 +1,12 @@
 using BitsAndBots.Components;
 using BitsAndBots.Components.Account;
+using BitsAndBots.Configuration;
 using BitsAndBots.Data;
 using BitsAndBots.Service;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using System.ComponentModel.DataAnnotations;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -66,15 +68,100 @@ app.MapRazorComponents<App>()
 // Add additional endpoints required by the Identity /Account Razor components.
 app.MapAdditionalIdentityEndpoints();
 
+var administrators = builder.Configuration.GetSection("Administrators").Get<List<AdministratorUser>>();
+
 //TODO: Make it easy to setup administrators via the appsettings.json file
 using (var scope = app.Services.CreateScope())
 {
+    var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+    dbContext.Database.Migrate();
+
     var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
 
     string role = "Administrator";
     if (!(await roleManager.RoleExistsAsync(role)))
     {
         await roleManager.CreateAsync(new IdentityRole(role));
+    }
+
+    var userManager = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
+
+    if (administrators != null && administrators.Any())
+    {
+        ILogger logger = scope.ServiceProvider.GetRequiredService<ILogger<Program>>();
+        IUserStore<ApplicationUser> userStore = scope.ServiceProvider.GetRequiredService<IUserStore<ApplicationUser>>();
+
+        foreach (var admin in administrators)
+        {
+            if (admin == null)
+            {
+                logger.LogWarning("Administrator not setup due to null value.");
+                continue;
+            }
+
+            if (string.IsNullOrWhiteSpace(admin.Email) || string.IsNullOrWhiteSpace(admin.UserName) || string.IsNullOrWhiteSpace(admin.Password))
+            {
+                logger.LogWarning("Administrator not setup. Email, UserName and Password must be specified.");
+                continue;
+            }
+
+            admin.Email = admin.Email?.Trim();
+            admin.UserName = admin.UserName?.Trim();
+            admin.Password = admin.Password?.Trim();
+
+            if (!new EmailAddressAttribute().IsValid(admin.Email))
+            {
+                logger.LogWarning("Administrator not setup. Email address is invalid.");
+                continue;
+            }
+
+            var stringLengthAttribute = new StringLengthAttribute(100)
+            {
+                MinimumLength = 6,
+                ErrorMessage = "The {0} must be at least {2} and at max {1} characters long."
+            };
+            if (!stringLengthAttribute.IsValid(admin.Password))
+            {
+                logger.LogWarning($"Administrator not setup. {stringLengthAttribute.FormatErrorMessage("Password")}");
+                continue;
+            }
+
+            //TODO: Any username validations required?
+
+            var existingUser = await userManager.FindByEmailAsync(admin.Email);
+            if (existingUser != null)
+            {
+                logger.LogWarning($"Administrator not setup. An administrator with the email {admin.Email} already exists.");
+                continue;
+            }
+
+            //TODO: If username added
+            //existingUser = await userManager.FindByNameAsync(admin.UserName);
+            //if (existingUser != null)
+            //{
+            //    logger.LogWarning($"Administrator not setup. An administrator with the Username {admin.UserName} already exists.");
+            //    continue;
+            //}
+
+            var user = Activator.CreateInstance<ApplicationUser>();
+            //TODO: If username changed
+            await userStore.SetUserNameAsync(user, admin.Email, CancellationToken.None);
+            await ((IUserEmailStore<ApplicationUser>)userStore).SetEmailAsync(user, admin.Email, CancellationToken.None);
+            var createUserResult = await userManager.CreateAsync(user, admin.Password);
+
+            if (createUserResult.Succeeded)
+            {
+                await userManager.AddToRoleAsync(user, role);
+                logger.LogInformation($"Administrator '{admin.Email}' created.");
+
+                var code = await userManager.GenerateEmailConfirmationTokenAsync(user);
+                var confirmEmailResult = await userManager.ConfirmEmailAsync(user, code);
+            }
+            else
+            {
+                logger.LogWarning($"Administrator not setup. Errors: {string.Join(", ", createUserResult.Errors.Select(e => e.Description))}");
+            }
+        }
     }
 }
 

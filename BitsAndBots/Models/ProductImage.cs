@@ -4,6 +4,5 @@
     {
         public long ProductId { get; set; }
         public Product Product { get; set; }
-        //TODO: Sequence number
     }
 }

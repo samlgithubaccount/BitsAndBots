@@ -1,0 +1,195 @@
+﻿@page "/events/edit"
+
+@using BitsAndBots.Configuration
+@using BitsAndBots.Data
+@using BitsAndBots.Models
+@using BitsAndBots.Service
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.EntityFrameworkCore
+@inject IConfiguration Configuration
+@inject IDbContextFactory<BitsAndBots.Data.ApplicationDbContext> DbFactory
+@inject NavigationManager NavigationManager
+@inject UserService UserService
+
+@rendermode InteractiveServer
+
+@attribute [Authorize]
+
+<PageTitle>Edit</PageTitle>
+
+<h1>Edit</h1>
+
+<h4>Event</h4>
+<hr />
+@if (Event is null)
+{
+    <p><em>Loading...</em></p>
+}
+else
+{
+    <div class="row">
+        <div class="col-md-4">
+            <EditForm EditContext="@EditContext" method="post" OnValidSubmit="UpdateEvent" OnInvalidSubmit="ClearErrors" FormName="edit" Enhance>
+                <DataAnnotationsValidator />
+                <ValidationSummary />
+                <input type="hidden" name="Event.Id" value="@Event.Id" />
+                <div class="mb-3">
+                    <label for="title" class="form-label">Title:</label>
+                    <InputText id="title" @bind-Value="Event.Title" class="form-control" />
+                    <ValidationMessage For="() => Event.Title" class="text-danger" />
+                </div>
+                <div class="mb-3">
+                    <label for="description" class="form-label">Description:</label>
+                    <InputTextArea id="description" @bind-Value="Event.Description" class="form-control" />
+                    <ValidationMessage For="() => Event.Description" class="text-danger" />
+                </div>
+                <div class="mb-3">
+                    <label for="start-time" class="form-label">Start:</label>
+                    <InputDate Type="InputDateType.DateTimeLocal" min="@DateTime.Now.ToString("yyyy-MM-ddTHH:mm")" id="start-time" @bind-Value="Event.StartTime" class="form-control" />
+                    <ValidationMessage For="() => Event.StartTime" class="text-danger" />
+                </div>
+                <div class="mb-3">
+                    <label for="end-time" class="form-label">End:</label>
+                    <InputDate Type="InputDateType.DateTimeLocal" min="@Event.StartTime.ToString("yyyy-MM-ddTHH:mm")" id="end-time" @bind-Value="Event.EndTime" class="form-control" />
+                    <ValidationMessage For="() => Event.EndTime" class="text-danger" />
+                </div>
+                <div class="mb-3">
+                    <label for="ticket-price" class="form-label">Ticket Price:</label>
+                    <InputNumber id="ticket-price" @bind-Value="Event.TicketPrice" class="form-control" />
+                    <ValidationMessage For="() => Event.TicketPrice" class="text-danger" />
+                </div>
+                <div class="mb-3">
+                    <label for="ticket-link" class="form-label">Ticket Link:</label>
+                    <InputText id="ticket-link" @bind-Value="Event.TicketLink" class="form-control" />
+                    <ValidationMessage For="() => Event.TicketLink" class="text-danger" />
+                </div>
+                <div class="mb-3">
+                    <label for="tags" class="form-label">Tags:</label>
+                    <InputTextArea id="tags" @bind-Value="TagsList" class="form-control" />
+                    <ValidationMessage For="() => TagsList" class="text-danger" />
+                </div>
+                <div class="mb-3">
+                    <label for="location" class="form-label">Location:</label>
+                    <InputTextArea id="location" @bind-Value="Event.Location" class="form-control" />
+                    <ValidationMessage For="() => Event.Location" class="text-danger" />
+                </div>
+                <div class="mb-3">
+                    <ImagePicker TImage="EventImage" EditContext="@EditContext" ValidationMessageStore="@ValidationMessageStore" Images="@Event.Images" Field="@(() => Event.Images)" />
+                </div>
+                <button type="submit" class="btn btn-primary">Save</button>
+            </EditForm>
+        </div>
+    </div>
+}
+
+<div>
+    <a href="/events">Back to List</a>
+</div>
+
+@code {
+    [SupplyParameterFromQuery]
+    public long Id { get; set; }
+
+    [SupplyParameterFromForm]
+    public Event? Event { get; set; }
+
+    private IList<EventImage> imagesInDatabase = [];
+
+    public EditContext EditContext;
+    public ValidationMessageStore ValidationMessageStore;
+
+    public ApplicationUser CurrentUser { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        CurrentUser = await UserService.GetCurrentUser();
+
+        using var context = DbFactory.CreateDbContext();
+        Event ??= await context.Event
+            .Include(p => p.Images.OrderBy(i => i.Index))
+            .Include(p => p.CreatedUser)
+            .FirstOrDefaultAsync(m => m.Id == Id);
+
+        if (Event is null)
+        {
+            NavigationManager.NavigateTo("notfound");
+        }
+
+        imagesInDatabase = Event.Images.ToList();
+
+        EditContext = new EditContext(Event);
+        ValidationMessageStore = new ValidationMessageStore(EditContext);
+        EditContext.OnFieldChanged += EditContext_OnFieldChanged;
+    }
+
+    public async Task UpdateEvent()
+    {
+        using var context = DbFactory.CreateDbContext();
+        context.Attach(Event!).State = EntityState.Modified;
+
+        foreach (var image in Event.Images)
+        {
+            if (image.Id == null || image.Id == 0)
+            {
+                context.Add(image);
+            } else
+            {
+                context.Entry(image).State = EntityState.Modified;
+            }
+        }
+
+        var removedImages = imagesInDatabase.Where(dbImage => !Event.Images.Any(modifiedImage => modifiedImage.Id == dbImage.Id));
+        foreach (var image in removedImages)
+        {
+            context.Entry(image).State = EntityState.Deleted;
+        }
+
+        Event.LastUpdatedTimestamp = DateTime.Now;
+
+        try
+        {
+            await context.SaveChangesAsync();
+        }
+        catch (DbUpdateConcurrencyException)
+        {
+            if (!EventExists(Event!.Id))
+            {
+                NavigationManager.NavigateTo("notfound");
+            }
+            else
+            {
+                throw;
+            }
+        }
+
+        NavigationManager.NavigateTo("/events");
+    }
+
+    public void ClearErrors()
+    {
+        ValidationMessageStore.Clear();
+    }
+
+    bool EventExists(long id)
+    {
+        using var context = DbFactory.CreateDbContext();
+        return context.Event.Any(e => e.Id == id);
+    }
+
+    private string TagsList
+    {
+        get => string.Join(", ", Event.Tags);
+        set => Event.Tags = value.Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries).Select(tag => tag.Trim()).ToList();
+    }
+
+    private void EditContext_OnFieldChanged(object sender, FieldChangedEventArgs e)
+    {
+        if (e.FieldIdentifier.FieldName == "StartTime")
+        {
+            if (Event.EndTime <= Event.StartTime)
+            {
+                Event.EndTime = Event.StartTime.AddHours(1);
+            }
+        }
+    }
+}

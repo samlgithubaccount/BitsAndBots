@@ -1,0 +1,113 @@
+﻿@page "/events/details"
+
+@using BitsAndBots.Configuration
+@using BitsAndBots.Data
+@using BitsAndBots.Service
+@using Microsoft.EntityFrameworkCore
+@using BitsAndBots.Models
+@inject IConfiguration Configuration
+@inject IDbContextFactory<BitsAndBots.Data.ApplicationDbContext> DbFactory
+@inject NavigationManager NavigationManager
+@inject UserService UserService
+
+@rendermode InteractiveServer
+
+<PageTitle>Details</PageTitle>
+
+<h1>Details</h1>
+
+<a href="@($"/events")">Back</a>
+
+<div>
+    <h4>Event</h4>
+    <hr />
+    @if (eventEntity is null)
+    {
+        <p><em>Loading...</em></p>
+    }
+    else {
+        <dl class="row">
+            <dt class="col-sm-2">Title</dt>
+            <dd class="col-sm-10">@eventEntity.Title</dd>
+            <dt class="col-sm-2">Description</dt>
+            <dd class="col-sm-10">@eventEntity.Description</dd>
+            <dt class="col-sm-2">Start</dt>
+            <dd class="col-sm-10">@eventEntity.StartTime</dd>
+            <dt class="col-sm-2">End</dt>
+            <dd class="col-sm-10">@eventEntity.EndTime</dd>
+            <dt class="col-sm-2">Ticket Price</dt>
+            <dd class="col-sm-10">@eventEntity.TicketPrice</dd>
+            <dt class="col-sm-2">Ticket Link</dt>
+            <dd class="col-sm-10">@eventEntity.TicketLink</dd>
+            <dt class="col-sm-2">Location</dt>
+            <dd class="col-sm-10">@eventEntity.Location</dd>
+            <dt class="col-sm-2">CreatedBy</dt>
+            <dd class="col-sm-10">@eventEntity.CreatedUser.Email</dd>
+            <dt class="col-sm-2">Created</dt>
+            <dd class="col-sm-10">@eventEntity.CreatedTimestamp</dd>
+            <dt class="col-sm-2">Last Updated</dt>
+            <dd class="col-sm-10">@eventEntity.LastUpdatedTimestamp</dd>
+            <dt class="col-sm-2">Image</dt>
+            <dd class="col-sm-10">
+                @foreach(var image in eventEntity.Images)
+                {
+                    <img src="data:image;base64,@System.Convert.ToBase64String(image.ImageData)" />
+                }
+            </dd>
+        </dl>
+
+        @if (CanCurrentUserModifyEvent)
+        {
+            <div>
+                <a href="@($"/events/edit?id={eventEntity.Id}")">Edit</a>
+                <EditForm method="post" Model="eventEntity" OnValidSubmit="DeleteEvent" FormName="delete" Enhance>
+                    <button type="submit" class="btn btn-danger" disabled="@(eventEntity is null)">Delete</button>
+                </EditForm>
+            </div>
+        }
+    }
+</div>
+
+@code {
+    Event? eventEntity;
+
+    public ApplicationUser CurrentUser { get; set; }
+
+    [SupplyParameterFromQuery]
+    public long Id { get; set; }
+
+    public bool CanCurrentUserModifyEvent { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        CurrentUser = await UserService.GetCurrentUser();
+
+        using var context = DbFactory.CreateDbContext();
+        eventEntity = await context.Event
+            .Include(e => e.Images.OrderBy(i => i.Index))
+            .Include(e => e.CreatedUser)
+            .FirstOrDefaultAsync(m => m.Id == Id);
+
+        if (eventEntity is null)
+        {
+            NavigationManager.NavigateTo("notfound");
+        }
+
+        CanCurrentUserModifyEvent = await UserCreatedEventOrIsAdministrator();
+    }
+
+    public async Task DeleteEvent()
+    {
+        using var context = DbFactory.CreateDbContext();
+        context.Event.Remove(eventEntity!);
+        await context.SaveChangesAsync();
+        NavigationManager.NavigateTo("/events");
+    }
+
+    public async Task<bool> UserCreatedEventOrIsAdministrator()
+	{
+        var currentUser = await UserService.GetCurrentUser();
+        var currentUserRoles = await UserService.GetCurrentUserRoles();
+		return currentUser != null && (eventEntity.CreatedUserId == currentUser.Id || currentUserRoles.Contains("Administrator"));
+	}
+}
