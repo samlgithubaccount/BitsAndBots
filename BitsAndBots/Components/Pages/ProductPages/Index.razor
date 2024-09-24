@@ -9,75 +9,37 @@
 
 
 <PageTitle>Index</PageTitle>
-<article class="border-bottom box-shadow">
-    <h1 class="page-title" >Products</h1>
-    @* TODO: Only show when logged in or change it to dislay something like sign up? *@
-    <a class="create" href="products/create">Create New</a>
-</article>
 
+<h1>Index</h1>
 
+@* TODO: Only show when logged in or change it to dislay something like sign up? *@
+<p>
+    <a href="products/create">Create New</a>
+</p>
 
+<form @onsubmit="GetProducts">
+    <InputText @bind-Value="SearchQuery" placeholder="Search for a product..." />
+    <button class="btn btn-primary">Search</button>
+    <label for="sort-by">Sort by</label>
+    <select @bind="SortBy" @bind:after="GetProducts" name="sort-by" id="cars">
+        @foreach (var sortOption in ProductSortOptions.GetAll())
+		{
+			<option value="@sortOption.DisplayName">@sortOption.DisplayName</option>
+		})
+    </select>
+</form>
 
-<article class="container-fluid">
-    <div class="row">
-        <div class="col-12 sidebar-sm">
-            <form class="in-sidebar" @onsubmit="GetProducts">
-                <div style="margin:3vh;" class="border-bottom" />
-                <InputText class="search-bar" @bind-Value="SearchQuery" placeholder="Search for a product..." />
-                <button class="search-button btn btn-primary">Search</button>
-
-                <div style="margin:3vh;" class="border-bottom" />
-                <label class="search-label" for="sort-by">Sort by</label>
-                <select class="search-sort" @bind="SortBy" name="sort-by" id="cars">
-                    @foreach (var sortOption in ProductSortOptions.GetAll())
-                    {
-                        <option value="@sortOption.DisplayName">@sortOption.DisplayName</option>
-                    })
-                </select>
-                <div style="margin:3vh;" class="border-bottom" />
-            </form>
+@if (!Products.Any()) {
+} else {
+    foreach (var product in Products) {
+        <div>
+            <a href="@($"products/details?id={product.Id}")">
+                <img src="data:image;base64,@System.Convert.ToBase64String(product.Images.First().ImageData)" />
+                @product.Title
+            </a>
         </div>
-    </div>
-    <div class="row">
-        
-        <div class="col-lg-3 col-md-0 sidebar">
-            <form class="in-sidebar" @onsubmit="GetProducts">
-                <div style="margin:3vh;" class="border-bottom" />
-                <InputText class="search-bar" @bind-Value="SearchQuery" placeholder="Search for a product..." />
-                <button class="search-button btn btn-primary">Search</button>
-
-                <div style="margin:3vh;"class="border-bottom"/>
-                <label class="search-label" for="sort-by">Sort by</label>
-                <select class ="search-sort" @bind="SortBy" name="sort-by" id="cars">
-                    @foreach (var sortOption in ProductSortOptions.GetAll())
-                    {
-                        <option value="@sortOption.DisplayName">@sortOption.DisplayName</option>
-                    })
-                </select>
-                
-            </form>
-        </div>
-        
-        <div class="col-lg-9 col-md-12 scrollbox">
-            @if (!Products.Any())
-        {
-        }
-        else
-        {
-            foreach (var product in Products)
-            {
-                <div class="product-info">
-                    <a href="@($"products/details?id={product.Id}")">
-                        <img src="data:image;base64,@System.Convert.ToBase64String(product.Images.First().ImageData)" />
-                        <div class="name">@product.Title</div>
-                    </a>
-                </div>
-            }
-        }
-        </div>
-    </div>
-</article>
-
+    }
+}
 
 
 @code {
@@ -100,7 +62,8 @@
 
         var sortOption = ProductSortOptions.GetByDisplayName(SortBy);
 
-        var query = context.Product.Include(product => product.Images)
+        var query = context.Product
+            .Include(product => product.Images.OrderBy(i => i.Index))
             .Where(p => p.Title.Contains(SearchQuery));
 
         query = sortOption.SortDirection == Models.SortDirection.Ascending

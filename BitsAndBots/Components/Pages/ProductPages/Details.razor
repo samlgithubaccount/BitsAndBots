@@ -1,112 +1,121 @@
 ﻿@page "/products/details"
 
+@using BitsAndBots.Configuration
 @using BitsAndBots.Data
 @using BitsAndBots.Service
 @using Microsoft.EntityFrameworkCore
 @using BitsAndBots.Models
+@inject IConfiguration Configuration
 @inject IDbContextFactory<BitsAndBots.Data.ApplicationDbContext> DbFactory
 @inject NavigationManager NavigationManager
 @inject UserService UserService
-
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.min.js"
-integrity="sha384-BBtl+eGJRgqQAUMxJ7pMwbEyER4l1g+O15P+16Ep7Q9Q+zqX6gSbd85u4mG4QzX+"
-crossorigin="anonymous"></script>
-
 
 @rendermode InteractiveServer
 
 <PageTitle>Details</PageTitle>
 
+<h1>Details</h1>
 
-
+<a href="@($"/products")">Back</a>
 
 <div>
+    <h4>Product</h4>
+    <hr />
     @if (product is null)
     {
         <p><em>Loading...</em></p>
     }
     else {
-        <div class="page row">
-            <div class="title-items">
-                <div class="title">@product.Title</div>
-                
-            </div>
-            
-            <div class="col-md-6 col-sm-12">
-                <div class="images">
-                    
-                    <div id="carousel" class="carousel slide" data-bs-ride="carousel">
-                        <div class="carousel-indicators">
-                            <button type="button" data-bs-target="#carousel" data-bs-slide-to="0" class="active" aria-current="true" aria-label="Slide 1"></button>
-                            @for (int i = 1; i < product.Images.ToArray().Length; i++)
-                            {
-                                <button type="button" data-bs-target="#carousel" data-bs-slide-to="@i" aria-label="Slide @i"></button>
-                            }
-                        </div>
-                        <div class="carousel-inner">
-                            <div class="carousel-item active">
-                                <img src="data:image;base64,@System.Convert.ToBase64String(product.Images.ToArray()[0].ImageData)" class="d-block w-100" alt="...">
-                            </div>
-                            @for (int i = 1; i < product.Images.ToArray().Length; i++)
-                            {
-                                <div class="carousel-item">
-                                    <img src="data:image;base64,@System.Convert.ToBase64String(product.Images.ToArray()[i].ImageData)" class="d-block w-100" alt="..." />
-                                </div>
-                            }
+        <dl class="row">
+            <dt class="col-sm-2">Title</dt>
+            <dd class="col-sm-10">@product.Title</dd>
+            <dt class="col-sm-2">Description</dt>
+            <dd class="col-sm-10">@product.Description</dd>
+            <dt class="col-sm-2">Price</dt>
+            <dd class="col-sm-10">@product.Price</dd>
+            <dt class="col-sm-2">Quantity Available</dt>
+            <dd class="col-sm-10">@product.Quantity</dd>
+            <dt class="col-sm-2">Location</dt>
+            <dd class="col-sm-10">@product.Location</dd>
+            <dt class="col-sm-2">CreatedBy</dt>
+            <dd class="col-sm-10">@product.CreatedUser.Email</dd>
+            <dt class="col-sm-2">Created</dt>
+            <dd class="col-sm-10">@product.CreatedTimestamp</dd>
+            <dt class="col-sm-2">Last Updated</dt>
+            <dd class="col-sm-10">@product.LastUpdatedTimestamp</dd>
+            <dt class="col-sm-2">Image</dt>
+            <dd class="col-sm-10">
+                @foreach(var image in product.Images)
+                {
+                    <img src="data:image;base64,@System.Convert.ToBase64String(image.ImageData)" />
+                }
+            </dd>
+        </dl>
 
-                        </div>
-                        
+
+        <AuthorizeView Context="authContext">
+            <Authorized>
+                <EditForm method="post" Model="productEnquiry" OnValidSubmit="SubmitEnquiry" FormName="enquire" Enhance>
+                    <DataAnnotationsValidator />
+                    <div class="mb-3">
+                        <label for="message" class="form-label">Message:</label>
+                        <InputTextArea id="message" @bind-Value="productEnquiry.Message" class="form-control" />
+                        <ValidationMessage For="() => productEnquiry.Message" class="text-danger" />
                     </div>
-                    
-                    <button class="carousel-control-prev" type="button" data-bs-target="#carousel" data-bs-slide="prev">
-                        <span class="carousel-control-prev-icon" aria-hidden="true"></span>
-                        <span class="visually-hidden">Previous</span>
-                    </button>
-                    <button class="carousel-control-next" type="button" data-bs-target="#carousel" data-bs-slide="next">
-                        <span class="carousel-control-next-icon" aria-hidden="true"></span>
-                        <span class="visually-hidden">Next</span>
-                    </button>
-                </div>
+                    @* TODO: Validate less than avaialable quantity *@
+                    @if (product.Quantity != null) {
+                        <div class="mb-3">
+                            <label for="quantity" class="form-label">Quantity:</label>
+                            <InputNumber id="quantity" @bind-Value="productEnquiry.Quantity" class="form-control" />
+                            <ValidationMessage For="() => productEnquiry.Quantity" class="text-danger" />
+                        </div>
+                    }
+                    <button type="submit" class="btn btn-primary" disabled="@(product is null || enquirySubmitted)">Submit</button>
+                </EditForm>
+                @if (enquirySubmitted)
+                {
+                    <div>Enquiry submitted</div>
+                }
+            </Authorized>
+            <NotAuthorized>
+                @* TODO: Prompt login *@
+            </NotAuthorized>
+        </AuthorizeView>
+
+        @if (CanCurrentUserModifyProduct)
+        {
+            <div>
+                <a href="@($"/products/edit?id={product.Id}")">Edit</a>
+                <EditForm method="post" Model="product" OnValidSubmit="DeleteProduct" FormName="delete" Enhance>
+                    <button type="submit" class="btn btn-danger" disabled="@(product is null)">Delete</button>
+                </EditForm>
             </div>
-
-            <div class="detail-items col-md-6 col-sm-12">
-                <div class="desc-title">Sellers Description</div>
-                <div class="description">@product.Description</div>
-                <div style="margin:3vh;" class="border-bottom" />
-                <div class="quantity">@product.Quantity available</div>
-                <div style="margin:3vh;" class="border-bottom" />
-                <div class="creator">Contact at @product.CreatedUser.Email</div>
-                <div class="price">$@product.Price</div>
-            </div>
-
-
-            @if (CanCurrentUserModifyProduct)
-            {
-                <div class="">
-                    <a href="@($"/products/edit?id={product.Id}")">Edit</a>
-                    <EditForm method="post" Model="product" OnValidSubmit="DeleteProduct" FormName="delete" Enhance>
-                        <button type="submit" class="btn btn-danger" disabled="@(product is null)">Delete</button>
-                    </EditForm>
-                </div>
-            }
-        </div>
-        
+        }
     }
 </div>
 
 @code {
+    [SupplyParameterFromForm(FormName = "enquire")]
+    ProductEnquiry productEnquiry { get; set; } = new();
     Product? product;
+    bool enquirySubmitted;
+
+    public ApplicationUser CurrentUser { get; set; }
 
     [SupplyParameterFromQuery]
     public long Id { get; set; }
+
     public bool CanCurrentUserModifyProduct { get; set; }
 
     protected override async Task OnInitializedAsync()
     {
+        CurrentUser = await UserService.GetCurrentUser();
+
         using var context = DbFactory.CreateDbContext();
-        product = await context.Product.FirstOrDefaultAsync(m => m.Id == Id);
-        await context.Entry<Product>(product).Collection(p => p.Images).LoadAsync();
-        await context.Entry<Product>(product).Reference(p => p.CreatedUser).LoadAsync();
+        product = await context.Product
+            .Include(p => p.Images.OrderBy(i => i.Index))
+            .Include(p => p.CreatedUser)
+            .FirstOrDefaultAsync(m => m.Id == Id);
 
         if (product is null)
         {
@@ -122,6 +131,42 @@ crossorigin="anonymous"></script>
         context.Product.Remove(product!);
         await context.SaveChangesAsync();
         NavigationManager.NavigateTo("/products");
+    }
+
+    public void SubmitEnquiry()
+    {
+        if (enquirySubmitted)
+		{
+			return;
+		}
+
+        productEnquiry.Product = product!;
+        productEnquiry.Title = product!.Title;
+        productEnquiry.Price = product!.Price;
+        productEnquiry.User = CurrentUser;
+
+        var emailCredentials =  Configuration.GetSection("SenderEmailCredential").Get<EmailCredential>();
+
+        if (emailCredentials == null)
+		{
+			throw new Exception("Email credentials not found");
+		}
+
+        var emailService = new EmailService(emailCredentials);
+
+        //TODO: Add product url?
+        var message = string.Format(
+            "You have received a product enquiry for your listing on Bits & Bots\n\n Enquiry Details\n Product Title: {0} \n {1} {2} From: {3} \n\n Message: {4} \n\nTo respond to this enquiry send an email to the email address in the enquiry details.",
+            productEnquiry.Title, 
+            productEnquiry.Price != null ? $"Price: {productEnquiry.Price}\n" : "", 
+            productEnquiry.Quantity != null ? $"Quantity: {productEnquiry.Quantity}\n" : "",
+            productEnquiry.User.Email,
+            productEnquiry.Message
+        );
+
+        emailService.SendEmail(product.CreatedUser.Email, $"Bits & Bots Product Enquiry: {product.Title}", message);
+        enquirySubmitted = true;
+        //TODO: Send db message
     }
 
     public async Task<bool> UserCreatedProductOrIsAdministrator()
