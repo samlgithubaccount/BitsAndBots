@@ -1,0 +1,210 @@
+﻿@page "/teamfundraiserparticipationregistrations/create"
+
+@using BitsAndBots.Data
+@using BitsAndBots.Service
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.EntityFrameworkCore
+@using BitsAndBots.Models
+
+@inject IDbContextFactory<BitsAndBots.Data.ApplicationDbContext> DbFactory
+@inject NavigationManager NavigationManager
+@inject UserService UserService
+
+@rendermode InteractiveServer
+
+<PageTitle>Create</PageTitle>
+
+<h1>Create</h1>
+
+<h2>Fundraiser Participation Registration</h2>
+<hr />
+<div class="row">
+    <div class="col-md-4">
+        @if (Fundraiser is null)
+        {
+            <p><em>Loading...</em></p>
+        }
+        else
+        {
+            if (!Fundraiser.SupportsIndividualRegistration && Fundraiser.SupportsTeamRegistration)
+            {
+                IsTeamRegistration = true;
+            }
+            else if (Fundraiser.SupportsIndividualRegistration && Fundraiser.SupportsTeamRegistration)
+            {
+                <div class="mb-3">
+                    <div class="form-group">
+                        <label>
+                            Team Registration:
+                            <InputCheckbox @bind-Value="IsTeamRegistration"/>
+                        </label>
+                    </div>
+                </div>
+            }
+            <EditForm method="post" Model="@(IsTeamRegistration ? TeamFundraiserParticipationRegistration : IndividualFundraiserParticipationRegistration)" OnValidSubmit="AddFundraiserParticipationRegistration" FormName="create" Enhance>
+                <DataAnnotationsValidator />
+                <ValidationSummary class="text-danger" />
+                @if (IsTeamRegistration) {
+                    <div class="mb-3">
+                        <label for="teamname" class="form-label">TeamName:</label> 
+                        <InputText id="teamname" @bind-Value="TeamFundraiserParticipationRegistration.TeamName" class="form-control" /> 
+                        <ValidationMessage For="() => TeamFundraiserParticipationRegistration.TeamName" class="text-danger" /> 
+                    </div>
+                    <div class="mb-3">
+                        <label for="team-member" class="form-label">Team Members:</label>
+                        <InputText id="team-member" @oninput="TeamMemberSearchValueChanged" @bind-Value="SearchUsername" class="form-control" />
+                        <button class="btn btn-primary" disabled="@(SearchTeamMember == null)" type="button" @onclick="AddTeamMember">Add</button>
+                        <ValidationMessage For="() => TeamFundraiserParticipationRegistration.TeamMembers" class="text-danger" />
+                        <ul>
+                            <li>
+                                @CurrentUser.UserName
+                            </li>
+                            @foreach (var teamMember in TeamFundraiserParticipationRegistration.TeamMembers)
+                            {
+                                <li>
+                                    @teamMember.UserName
+                                    <button class="btn btn-primary" type="button" @onclick="(()=> RemoveUser(teamMember))">Remove</button>
+                                </li>
+                            }
+                        </ul>
+                    </div>
+                }
+                @if (Fundraiser.SupportsParticipantLinks) {
+                    <div class="mb-3">
+                        <label for="participantlink" class="form-label">ParticipantLink:</label> 
+                        <InputText id="participantlink" @bind-Value="TeamFundraiserParticipationRegistration.ParticipantLink" class="form-control" /> 
+                        <ValidationMessage For="() => TeamFundraiserParticipationRegistration.ParticipantLink" class="text-danger" /> 
+                    </div>
+                }
+                <button type="submit" class="btn btn-primary">Create</button>
+            </EditForm>
+        }
+    </div>
+</div>
+
+<div>
+    <a href="/teamfundraiserparticipationregistrations">Back to List</a>
+</div>
+
+@code {
+    [SupplyParameterFromQuery]
+    private long FundraiserId { get; set; }
+    [SupplyParameterFromForm]
+    private TeamFundraiserParticipationRegistration TeamFundraiserParticipationRegistration { get; set; } = new();
+    [SupplyParameterFromForm]
+    private IndividualFundraiserParticipationRegistration IndividualFundraiserParticipationRegistration { get; set; } = new();
+
+    public ApplicationUser CurrentUser { get; set; }
+    private Fundraiser Fundraiser;
+
+    private bool IsTeamRegistration = false;
+    private string SearchUsername = "";
+    private ApplicationUser? SearchTeamMember = null;
+
+    protected override async Task OnInitializedAsync()
+    {
+        CurrentUser = await UserService.GetCurrentUser();
+
+        using var context = DbFactory.CreateDbContext();
+        Fundraiser ??= await context.Fundraiser.FirstOrDefaultAsync(m => m.Id == FundraiserId);
+
+        if (Fundraiser is null)
+        {
+            NavigationManager.NavigateTo("notfound");
+        }
+    }
+
+    // To protect from overposting attacks, see https://learn.microsoft.com/aspnet/core/blazor/forms/#mitigate-overposting-attacks.
+    private async Task AddFundraiserParticipationRegistration()
+    {
+        using var context = DbFactory.CreateDbContext();
+
+        if (Fundraiser.SupportsIndividualRegistration) {
+            var existingRegistrationForCreator = await context.IndividualFundraiserParticipationRegistration
+            .FirstOrDefaultAsync(registration => registration.UserId == CurrentUser.Id && registration.FundraiserId == Fundraiser.Id);
+
+            if (existingRegistrationForCreator != null)
+            {
+                //TODO: Add error message
+                return;
+            }
+        }
+
+        if (Fundraiser.SupportsTeamRegistration)
+        {
+            var usersWithExistingregistrations = await context.TeamFundraiserParticipationRegistration
+            .Where(registration => registration.FundraiserId == Fundraiser.Id)
+            .Select(registration => registration.User)
+            .Where(user => TeamFundraiserParticipationRegistration.TeamMembers.Select(user => user.Id).Contains(user.Id) || CurrentUser.Id == user.Id)
+            .ToListAsync();
+
+            if (usersWithExistingregistrations.Any())
+            {
+                //TODO: Add error message
+                return;
+            }
+
+            var usersWithExistingTeamMemberships = await context.TeamFundraiserParticipationRegistration
+                .Where(registration => registration.FundraiserId == Fundraiser.Id)
+                .SelectMany(registration => registration.TeamMembers)
+                .Where(user => TeamFundraiserParticipationRegistration.TeamMembers.Select(user => user.Id).Contains(user.Id) || CurrentUser.Id == user.Id)
+                .ToListAsync();
+
+            if (usersWithExistingTeamMemberships.Any())
+            {
+                //Todo: add error message with team member names
+                return;
+            }
+        }
+        //       if (existingRegistration != null) {
+        //           registrationValidationMessages.Add("You have already registered for this fundraiser.");
+        //           return;
+        //       }
+
+        if (IsTeamRegistration)
+        {
+            TeamFundraiserParticipationRegistration.FundraiserId = FundraiserId;
+            TeamFundraiserParticipationRegistration.UserId = CurrentUser.Id;
+
+            foreach (var teamMember in TeamFundraiserParticipationRegistration.TeamMembers)
+            {
+                context.Entry(teamMember).State = EntityState.Unchanged;
+            }
+
+            context.TeamFundraiserParticipationRegistration.Add(TeamFundraiserParticipationRegistration);
+        }
+        else
+        {
+            IndividualFundraiserParticipationRegistration.FundraiserId = FundraiserId;
+            IndividualFundraiserParticipationRegistration.UserId = CurrentUser.Id;
+            context.IndividualFundraiserParticipationRegistration.Add(IndividualFundraiserParticipationRegistration);
+        }
+
+        await context.SaveChangesAsync();
+        NavigationManager.NavigateTo("/teamfundraiserparticipationregistrations");
+    }
+
+    private void RemoveUser(ApplicationUser user)
+    {
+        TeamFundraiserParticipationRegistration.TeamMembers.Remove(user);
+    }
+
+    private async Task TeamMemberSearchValueChanged(ChangeEventArgs e)
+    {
+        if (e.Value != null) {
+            using var context = DbFactory.CreateDbContext();
+            var user = await context.Users.FirstOrDefaultAsync(u => u.UserName == e.Value.ToString());
+            SearchTeamMember = user;
+        }
+    }
+
+    private void AddTeamMember()
+    {
+        if (SearchTeamMember != null && !TeamFundraiserParticipationRegistration.TeamMembers.Any(u => u.Id == SearchTeamMember.Id) && SearchTeamMember.Id != CurrentUser.Id)
+        {
+            TeamFundraiserParticipationRegistration.TeamMembers.Add(SearchTeamMember);
+            SearchTeamMember = null;
+            SearchUsername = "";
+        }
+    }
+}

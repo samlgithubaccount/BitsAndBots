@@ -10,7 +10,8 @@ namespace BitsAndBots.Data
         public DbSet<Product> Product { get; set; } = default!;
         public DbSet<Event> Event { get; set; } = default!;
         public DbSet<Fundraiser> Fundraiser { get; set; } = default!;
-        public DbSet<FundraiserParticipantionRegistration> FundraiserParticipationRegistration { get; set; } = default!;
+        public DbSet<IndividualFundraiserParticipationRegistration> IndividualFundraiserParticipationRegistration { get; set; } = default!;
+        public DbSet<TeamFundraiserParticipationRegistration> TeamFundraiserParticipationRegistration { get; set; } = default!;
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -73,20 +74,39 @@ namespace BitsAndBots.Data
                     );
             });
 
-            modelBuilder.Entity<FundraiserParticipantionRegistration>(static entity =>
+            modelBuilder.Entity<IndividualFundraiserParticipationRegistration>(static entity =>
             {
                 entity.HasKey(registration => registration.Id);
                 entity.HasOne(registration => registration.User)
-                    .WithMany(user => user.FundraiserRegistrations)
+                    .WithMany(user => user.IndividualFundraiserRegistrations)
                     .HasForeignKey(registration => registration.UserId)
                     .IsRequired()
                     .OnDelete(DeleteBehavior.NoAction);
 
                 entity.HasOne(registration => registration.Fundraiser)
-                    .WithMany(fundraiser => fundraiser.ParticipationRegistrations)
+                    .WithMany(fundraiser => fundraiser.IndividualFundraiserRegistrations)
                     .HasForeignKey(registration => registration.FundraiserId)
                     .IsRequired()
-                    .OnDelete(DeleteBehavior.NoAction); ;
+                    .OnDelete(DeleteBehavior.NoAction);
+            });
+
+            modelBuilder.Entity<TeamFundraiserParticipationRegistration>(static entity =>
+            {
+                entity.HasKey(registration => registration.Id);
+                entity.HasOne(registration => registration.User)
+                    .WithMany(user => user.TeamFundraiserRegistrations)
+                    .HasForeignKey(registration => registration.UserId)
+                    .IsRequired()
+                    .OnDelete(DeleteBehavior.NoAction);
+
+                entity.HasMany(registration => registration.TeamMembers)
+                    .WithMany(user => user.FundraiserRegistrationTeamMemberships);
+
+                entity.HasOne(registration => registration.Fundraiser)
+                    .WithMany(fundraiser => fundraiser.TeamFundraiserRegistrations)
+                    .HasForeignKey(registration => registration.FundraiserId)
+                    .IsRequired()
+                    .OnDelete(DeleteBehavior.NoAction);
             });
         }
     }

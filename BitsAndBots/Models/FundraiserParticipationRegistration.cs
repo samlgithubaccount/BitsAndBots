@@ -2,7 +2,7 @@
 
 namespace BitsAndBots.Models
 {
-    public class FundraiserParticipantionRegistration
+    public abstract class FundraiserParticipationRegistration
     {
         public long Id { get; set; }
         public long FundraiserId { get; set; }
