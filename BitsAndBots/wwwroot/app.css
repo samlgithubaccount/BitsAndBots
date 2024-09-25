@@ -3,13 +3,26 @@ html, body {
 }
 
 
-
-
-.btn-primary {
-    color: #fff;
-    background-color: #1b6ec2;
-    border-color: #1861ac;
+.img-thumbnail {
+    width:180px;
+    height:180px;
 }
+
+.img-remove {
+    position: absolute;
+    top: 8px;
+    right: 16px;
+}
+
+.cont {
+    position: relative;
+    width: 200px;
+    height: 180px;
+    text-align: center;
+    color: white;
+}
+
+
 
 html {
     font-size: 14px;

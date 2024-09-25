@@ -10,87 +10,119 @@
 @inject NavigationManager NavigationManager
 @inject UserService UserService
 
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.min.js"
+integrity="sha384-BBtl+eGJRgqQAUMxJ7pMwbEyER4l1g+O15P+16Ep7Q9Q+zqX6gSbd85u4mG4QzX+"
+crossorigin="anonymous"></script>
+
+
 @rendermode InteractiveServer
 
 <PageTitle>Details</PageTitle>
 
-<h1>Details</h1>
 
-<a href="@($"/products")">Back</a>
+
 
 <div>
-    <h4>Product</h4>
-    <hr />
     @if (product is null)
     {
         <p><em>Loading...</em></p>
     }
     else {
-        <dl class="row">
-            <dt class="col-sm-2">Title</dt>
-            <dd class="col-sm-10">@product.Title</dd>
-            <dt class="col-sm-2">Description</dt>
-            <dd class="col-sm-10">@product.Description</dd>
-            <dt class="col-sm-2">Price</dt>
-            <dd class="col-sm-10">@product.Price</dd>
-            <dt class="col-sm-2">Quantity Available</dt>
-            <dd class="col-sm-10">@product.Quantity</dd>
-            <dt class="col-sm-2">Location</dt>
-            <dd class="col-sm-10">@product.Location</dd>
-            <dt class="col-sm-2">CreatedBy</dt>
-            <dd class="col-sm-10">@product.CreatedUser.Email</dd>
-            <dt class="col-sm-2">Created</dt>
-            <dd class="col-sm-10">@product.CreatedTimestamp</dd>
-            <dt class="col-sm-2">Last Updated</dt>
-            <dd class="col-sm-10">@product.LastUpdatedTimestamp</dd>
-            <dt class="col-sm-2">Image</dt>
-            <dd class="col-sm-10">
-                @foreach(var image in product.Images)
-                {
-                    <img src="data:image;base64,@System.Convert.ToBase64String(image.ImageData)" />
-                }
-            </dd>
-        </dl>
-
-
-        <AuthorizeView Context="authContext">
-            <Authorized>
-                <EditForm method="post" Model="productEnquiry" OnValidSubmit="SubmitEnquiry" FormName="enquire" Enhance>
-                    <DataAnnotationsValidator />
-                    <div class="mb-3">
-                        <label for="message" class="form-label">Message:</label>
-                        <InputTextArea id="message" @bind-Value="productEnquiry.Message" class="form-control" />
-                        <ValidationMessage For="() => productEnquiry.Message" class="text-danger" />
-                    </div>
-                    @* TODO: Validate less than avaialable quantity *@
-                    @if (product.Quantity != null) {
-                        <div class="mb-3">
-                            <label for="quantity" class="form-label">Quantity:</label>
-                            <InputNumber id="quantity" @bind-Value="productEnquiry.Quantity" class="form-control" />
-                            <ValidationMessage For="() => productEnquiry.Quantity" class="text-danger" />
-                        </div>
-                    }
-                    <button type="submit" class="btn btn-primary" disabled="@(product is null || enquirySubmitted)">Submit</button>
-                </EditForm>
-                @if (enquirySubmitted)
-                {
-                    <div>Enquiry submitted</div>
-                }
-            </Authorized>
-            <NotAuthorized>
-                <a href="/Account/Login">Log in</a> to submit an enquiry.
-            </NotAuthorized>
-        </AuthorizeView>
-
-        @if (CanCurrentUserModifyProduct)
-        {
-            <div>
-                <a href="@($"/products/edit?id={product.Id}")">Edit</a>
-                <EditForm method="post" Model="product" OnValidSubmit="DeleteProduct" FormName="delete" Enhance>
-                    <button type="submit" class="btn btn-danger" disabled="@(product is null)">Delete</button>
-                </EditForm>
+        <div class="page row">
+            <div class="title-items">
+                <div class="title">@product.Title</div>
+                
             </div>
-        }
+            
+            <div class="col-md-6 col-sm-12">
+                <div class="images">
+                    
+                    <div id="carousel" class="carousel slide" data-bs-ride="carousel">
+                        <div class="carousel-indicators">
+                            <button type="button" data-bs-target="#carousel" data-bs-slide-to="0" class="active" aria-current="true" aria-label="Slide 1"></button>
+                            @for (int i = 1; i < product.Images.ToArray().Length; i++)
+                            {
+                                <button type="button" data-bs-target="#carousel" data-bs-slide-to="@i" aria-label="Slide @i"></button>
+                            }
+                        </div>
+                        <div class="carousel-inner">
+                            <div class="carousel-item active">
+                                <img src="data:image;base64,@System.Convert.ToBase64String(product.Images.ToArray()[0].ImageData)" class="d-block w-100" alt="...">
+                            </div>
+                            @for (int i = 1; i < product.Images.ToArray().Length; i++)
+                            {
+                                <div class="carousel-item">
+                                    <img src="data:image;base64,@System.Convert.ToBase64String(product.Images.ToArray()[i].ImageData)" class="d-block w-100" alt="..." />
+                                </div>
+                            }
+
+                        </div>
+                        
+                    </div>
+                    
+                    <button class="carousel-control-prev" type="button" data-bs-target="#carousel" data-bs-slide="prev">
+                        <span class="carousel-control-prev-icon cara" aria-hidden="true"></span>
+                        <span class="visually-hidden">Previous</span>
+                    </button>
+                    <button class="carousel-control-next" type="button" data-bs-target="#carousel" data-bs-slide="next">
+                        <span class="carousel-control-next-icon cara" aria-hidden="true"></span>
+                        <span class="visually-hidden">Next</span>
+                    </button>
+                </div>
+            </div>
+
+            <div class="detail-items col-md-6 col-sm-12">
+                <div class="desc-title">Sellers Description</div>
+                <div class="description">@product.Description</div>
+                <div style="margin:3vh;" class="border-bottom" />
+                <div class="quantity">@product.Quantity available</div>
+                <div style="margin:3vh;" class="border-bottom" />
+                <div class="creator">Contact at @product.CreatedUser.Email</div>
+                <div class="price">$@product.Price</div>
+            </div>
+
+
+            <AuthorizeView Context="authContext">
+                <Authorized>
+                    <EditForm method="post" Model="productEnquiry" OnValidSubmit="SubmitEnquiry" FormName="enquire" Enhance>
+                        <DataAnnotationsValidator />
+                        <div class="mb-3">
+                            <label for="message" class="form-label">Message:</label>
+                            <InputTextArea id="message" @bind-Value="productEnquiry.Message" class="form-control" />
+                            <ValidationMessage For="() => productEnquiry.Message" class="text-danger" />
+                        </div>
+                        @* TODO: Validate less than avaialable quantity *@
+                        @if (product.Quantity != null) {
+                            <div class="mb-3">
+                                <label for="quantity" class="form-label">Quantity:</label>
+                                <InputNumber id="quantity" @bind-Value="productEnquiry.Quantity" class="form-control" />
+                                <ValidationMessage For="() => productEnquiry.Quantity" class="text-danger" />
+                            </div>
+                        }
+                        <button type="submit" class="btn btn-primary" disabled="@(product is null || enquirySubmitted)">Submit</button>
+                    </EditForm>
+                    @if (enquirySubmitted)
+                    {
+                        <div>Enquiry submitted</div>
+                    }
+                </Authorized>
+                <NotAuthorized>
+                    <a href="/Account/Login">Log in</a> to submit an enquiry.
+                </NotAuthorized>
+            </AuthorizeView>
+
+            @if (CanCurrentUserModifyProduct)
+            {
+                <div class="">
+                    <a href="@($"/products/edit?id={product.Id}")">Edit</a>
+                    <EditForm method="post" Model="product" OnValidSubmit="DeleteProduct" FormName="delete" Enhance>
+                        <button type="submit" class="btn btn-danger" disabled="@(product is null)">Delete</button>
+                    </EditForm>
+                </div>
+            }
+            <div style="position:absolute;bottom:0;margin-top:30vh"></div>
+        </div>
+        
     }
 </div>
 
