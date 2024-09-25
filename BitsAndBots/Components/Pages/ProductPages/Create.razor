@@ -26,24 +26,24 @@
             <DataAnnotationsValidator />
             <ValidationSummary class="text-danger" />
             <div class="mb-3">
-                <label for="title" class="form-label">Title:</label> 
-                <InputText id="title" @bind-Value="Product.Title" class="form-control" /> 
-                <ValidationMessage For="() => Product.Title" class="text-danger" /> 
-            </div>        
+                <label for="title" class="form-label">Title:</label>
+                <InputText id="title" @bind-Value="Product.Title" class="form-control" />
+                <ValidationMessage For="() => Product.Title" class="text-danger" />
+            </div>
             <div class="mb-3">
-                <label for="description" class="form-label">Description:</label> 
-                <InputTextArea id="description" @bind-Value="Product.Description" class="form-control" /> 
-                <ValidationMessage For="() => Product.Description" class="text-danger" /> 
-            </div>        
+                <label for="description" class="form-label">Description:</label>
+                <InputTextArea id="description" @bind-Value="Product.Description" class="form-control" />
+                <ValidationMessage For="() => Product.Description" class="text-danger" />
+            </div>
             <div class="mb-3">
-                <label for="price" class="form-label">Price:</label> 
-                <InputNumber id="price" @bind-Value="Product.Price" class="form-control" /> 
-                <ValidationMessage For="() => Product.Price" class="text-danger" /> 
-            </div>        
+                <label for="price" class="form-label">Price:</label>
+                <InputNumber id="price" @bind-Value="Product.Price" class="form-control" />
+                <ValidationMessage For="() => Product.Price" class="text-danger" />
+            </div>
             <div class="mb-3">
-                <label for="quantity" class="form-label">Quantity Available:</label> 
-                <InputNumber id="quantity" @bind-Value="Product.Quantity" class="form-control" /> 
-                <ValidationMessage For="() => Product.Quantity" class="text-danger" /> 
+                <label for="quantity" class="form-label">Quantity Available:</label>
+                <InputNumber id="quantity" @bind-Value="Product.Quantity" class="form-control" />
+                <ValidationMessage For="() => Product.Quantity" class="text-danger" />
             </div>
             <div class="mb-3">
                 <label for="tags" class="form-label">Tags:</label>
@@ -55,7 +55,7 @@
                 <InputTextArea id="location" @bind-Value="Product.Location" class="form-control" />
                 <ValidationMessage For="() => Product.Location" class="text-danger" />
             </div>
-            <ImagePicker TImage="ProductImage" EditContext="@EditContext" ValidationMessageStore="@ValidationMessageStore" Images="@Product.Images" Field="@(() => Product.Images)"/>
+            <ImagePicker TImage="ProductImage" EditContext="@EditContext" ValidationMessageStore="@ValidationMessageStore" Images="@Product.Images" Field="@(() => Product.Images)" />
             <button @onclick="ClearErrors" type="submit" class="btn btn-primary">Create</button>
         </EditForm>
     </div>
