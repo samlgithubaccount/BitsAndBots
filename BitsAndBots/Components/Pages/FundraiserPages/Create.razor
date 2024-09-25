@@ -51,6 +51,31 @@
                 <ValidationMessage For="() => Fundraiser.FundraiserLink" class="text-danger" />
             </div>
             <div class="mb-3">
+                <label class="form-label">Supported Registration Types:</label>
+                <ValidationMessage For="() => Fundraiser.RegistrationTypeSelected" class="text-danger" />
+                <div class="form-group">
+                    <label>
+                        <InputCheckbox id="supports-individual-registration" @bind-Value="Fundraiser.SupportsIndividualRegistration"/>
+                        Individual
+                    </label>
+                </div>
+                <div class="form-group">
+                    <label>
+                        <InputCheckbox id="supports-team-registration" @bind-Value="Fundraiser.SupportsTeamRegistration"/>
+                        Team
+                    </label>
+                </div>
+            </div>
+            <div class="mb-3">
+                <div class="form-group">
+                    <label>
+                        Allow Participant Links:
+                        <InputCheckbox id="supports-participant-links" @bind-Value="Fundraiser.SupportsParticipantLinks"/>
+                    </label>
+                </div>
+                <ValidationMessage For="() => Fundraiser.SupportsParticipantLinks" class="text-danger" />
+            </div>
+            <div class="mb-3">
                 <label for="tags" class="form-label">Tags:</label>
                 <InputTextArea id="tags" @bind-Value="TagsList" class="form-control" />
                 <ValidationMessage For="() => TagsList" class="text-danger" />

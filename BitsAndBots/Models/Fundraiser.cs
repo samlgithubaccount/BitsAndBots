@@ -19,6 +19,12 @@ namespace BitsAndBots.Models
         [EndTimeValidator("StartTime")]
         public DateTime EndTime { get; set; } = DateTime.Now.AddHours(2);
         public string? FundraiserLink { get; set; }
+        public bool SupportsParticipantLinks { get; set; }
+        public bool SupportsTeamRegistration { get; set; }
+        public bool SupportsIndividualRegistration { get; set; }
+        [Required]
+        [Range(typeof(bool), "true", "true", ErrorMessage = "Atleast one registration type must be selected.")]
+        public bool RegistrationTypeSelected { get { return SupportsIndividualRegistration || SupportsTeamRegistration; } set { } }
         public DateTime CreatedTimestamp { get; set; }
         public DateTime LastUpdatedTimestamp { get; set; }
         public string CreatedUserId { get; set; }
@@ -28,6 +34,7 @@ namespace BitsAndBots.Models
         [MinLength(1, ErrorMessage = "A minimum of 1 Image is required.")]
         public IList<FundraiserImage> Images { get; set; } = [];
         public string? Location { get; set; }
-        public ICollection<FundraiserParticipantionRegistration> ParticipationRegistrations { get; set; } = [];
+        public ICollection<IndividualFundraiserParticipationRegistration> IndividualFundraiserRegistrations { get; set; } = [];
+        public ICollection<TeamFundraiserParticipationRegistration> TeamFundraiserRegistrations { get; set; } = [];
     }
 }

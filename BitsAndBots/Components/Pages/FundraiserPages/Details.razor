@@ -5,6 +5,7 @@
 @using BitsAndBots.Service
 @using Microsoft.EntityFrameworkCore
 @using BitsAndBots.Models
+@using Microsoft.AspNetCore.Components.QuickGrid
 @inject IConfiguration Configuration
 @inject IDbContextFactory<BitsAndBots.Data.ApplicationDbContext> DbFactory
 @inject NavigationManager NavigationManager
@@ -53,36 +54,38 @@
                 }
             </dd>
         </dl>
-
-        <AuthorizeView Context="authContext">
-            <Authorized>
-                <EditForm method="post" Model="participationRegistration" OnValidSubmit="SubmitParticipationRegistration" FormName="register" Enhance>
-                    @if (registrationValidationMessages.Count > 0)
-                    {
-                        <ul class ="text-danger">
-                            @foreach (var message in registrationValidationMessages)
-                            {
-                                <li class="validation-message">@message</li>
-                            }
-                        </ul>
-                    }
-                    <DataAnnotationsValidator />
-                    <div class="mb-3">
-                        <label for="participant-link" class="form-label">Url to your registration or donation page:</label>
-                        <InputText id="participant-link" @bind-Value="participationRegistration.ParticipantLink" class="form-control" />
-                        <ValidationMessage For="() => participationRegistration.ParticipantLink" class="text-danger" />
-                    </div>
-                    <button type="submit" class="btn btn-primary" disabled="@(fundraiser is null || registrationSubmitted)">Submit</button>
-                </EditForm>
-                @if (registrationSubmitted)
+        
+        @if (fundraiser.SupportsIndividualRegistration)
+		{
+            <QuickGrid Items="individualFundraiserParticipationRegistrations">
+                <PropertyColumn Property="r => r.User.UserName" Title="Username" />
+                @if (fundraiser.SupportsParticipantLinks)
                 {
-                    <div>Registration submitted</div>
+                    <PropertyColumn Property="r => r.ParticipantLink" Title="Participant Link" />
                 }
-            </Authorized>
-            <NotAuthorized>
-                @* TODO: Prompt login *@
-            </NotAuthorized>
-        </AuthorizeView>
+            </QuickGrid>
+		}
+
+
+        @if (fundraiser.SupportsTeamRegistration) {
+            <QuickGrid Items="teamFundraiserParticipationRegistrations">
+                <PropertyColumn Property="r => r.User.UserName" Title="Username" />
+                @if (fundraiser.SupportsParticipantLinks)
+                {
+                    <PropertyColumn Property="r => r.ParticipantLink" Title="Participant Link" />
+                }
+                <TemplateColumn Context="teamFundraiserParticipationRegistrations" Title="Team Members">
+                    <ul>
+                        @foreach (var teamMember in teamFundraiserParticipationRegistrations.TeamMembers)
+                        {
+                            <li>@teamMember.UserName</li>
+                        }
+                    </ul>
+                </TemplateColumn>
+            </QuickGrid>
+        }
+
+
 
         @if (CanCurrentUserModifyFundraiser)
         {
@@ -93,17 +96,23 @@
                 </EditForm>
             </div>
         }
+
+        <a href="@($"/teamfundraiserparticipationregistrations/create?fundraiserId={fundraiser.Id}")">Register</a>
     }
 </div>
 
 @code {
-    [SupplyParameterFromForm(FormName = "register")]
-    FundraiserParticipantionRegistration participationRegistration { get; set; } = new();
+    //[SupplyParameterFromForm(FormName = "register")]
+    //FundraiserParticipantRegistration participationRegistration { get; set; } = new();
     Fundraiser? fundraiser;
-    bool registrationSubmitted;
-    IList<string> registrationValidationMessages = new List<string>();
+    //bool registrationSubmitted;
+    //IList<string> registrationValidationMessages = new List<string>();
+    IQueryable<IndividualFundraiserParticipationRegistration> individualFundraiserParticipationRegistrations = default!;
+    IQueryable<TeamFundraiserParticipationRegistration> teamFundraiserParticipationRegistrations = default!;
 
     public ApplicationUser CurrentUser { get; set; }
+
+    private ApplicationDbContext participantsContext = default!;
 
     [SupplyParameterFromQuery]
     public long Id { get; set; }
@@ -125,6 +134,15 @@
             NavigationManager.NavigateTo("notfound");
         }
 
+        if (fundraiser.SupportsIndividualRegistration)
+        {
+            individualFundraiserParticipationRegistrations = await GetIndividualFundraiserRegistrations();
+        }
+        if (fundraiser.SupportsTeamRegistration)
+        {
+            teamFundraiserParticipationRegistrations = await GetTeamFundraiserRegistrations();
+        }
+
         CanCurrentUserModifyFundraiser = await UserCreatedFundraiserOrIsAdministrator();
     }
 
@@ -136,32 +154,55 @@
         NavigationManager.NavigateTo("/fundraisers");
     }
 
-    public async Task SubmitParticipationRegistration()
+    private async Task<IQueryable<IndividualFundraiserParticipationRegistration>> GetIndividualFundraiserRegistrations()
     {
-        if (registrationSubmitted)
-		{
-			return;
-		}
-
-        registrationValidationMessages.Clear();
-
         using var context = DbFactory.CreateDbContext();
-
-        var existingRegistration = await context.FundraiserParticipationRegistration
-            .FirstOrDefaultAsync(registration => registration.UserId == CurrentUser.Id && registration.FundraiserId == fundraiser.Id);
-
-        if (existingRegistration != null) {
-            registrationValidationMessages.Add("You have already registered for this fundraiser.");
-            return;
-        }
-
-        participationRegistration.FundraiserId = fundraiser!.Id;
-        participationRegistration.UserId = CurrentUser.Id;
-
-        context.FundraiserParticipationRegistration.Add(participationRegistration);
-        await context.SaveChangesAsync();
-        registrationSubmitted = true;
+        var registrations = await context.IndividualFundraiserParticipationRegistration
+            .Include(r => r.User)
+            .Where(r => r.FundraiserId == fundraiser.Id)
+            .OrderBy(r => r.Id)
+            .ToListAsync();
+        return registrations.AsQueryable();
     }
+
+    private async Task<IQueryable<TeamFundraiserParticipationRegistration>> GetTeamFundraiserRegistrations()
+    {
+        using var context = DbFactory.CreateDbContext();
+        var registrations = await context.TeamFundraiserParticipationRegistration
+            .Include(r => r.User)
+            .Include(r => r.TeamMembers)
+            .Where(r => r.FundraiserId == fundraiser.Id)
+            .OrderBy(r => r.Id)
+            .ToListAsync();
+        return registrations.AsQueryable();
+    }
+
+  //   public async Task SubmitParticipationRegistration()
+  //   {
+  //       if (registrationSubmitted)
+		// {
+		// 	return;
+		// }
+
+  //       registrationValidationMessages.Clear();
+
+  //       using var context = DbFactory.CreateDbContext();
+
+  //       var existingRegistration = await context.FundraiserParticipationRegistration
+  //           .FirstOrDefaultAsync(registration => registration.UserId == CurrentUser.Id && registration.FundraiserId == fundraiser.Id);
+
+  //       if (existingRegistration != null) {
+  //           registrationValidationMessages.Add("You have already registered for this fundraiser.");
+  //           return;
+  //       }
+
+  //       participationRegistration.FundraiserId = fundraiser!.Id;
+  //       participationRegistration.UserId = CurrentUser.Id;
+
+  //       context.FundraiserParticipationRegistration.Add(participationRegistration);
+  //       await context.SaveChangesAsync();
+  //       registrationSubmitted = true;
+  //   }
 
     public async Task<bool> UserCreatedFundraiserOrIsAdministrator()
 	{
