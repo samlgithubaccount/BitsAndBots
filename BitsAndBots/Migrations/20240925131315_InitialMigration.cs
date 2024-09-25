@@ -186,6 +186,38 @@ namespace BitsAndBots.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "Fundraiser",
+                columns: table => new
+                {
+                    Id = table.Column<long>(type: "bigint", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    Title = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Description = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    StartTime = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    EndTime = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    FundraiserLink = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    SupportsParticipantLinks = table.Column<bool>(type: "bit", nullable: false),
+                    SupportsTeamRegistration = table.Column<bool>(type: "bit", nullable: false),
+                    SupportsIndividualRegistration = table.Column<bool>(type: "bit", nullable: false),
+                    RegistrationTypeSelected = table.Column<bool>(type: "bit", nullable: false),
+                    CreatedTimestamp = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    LastUpdatedTimestamp = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    CreatedUserId = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                    Tags = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Location = table.Column<string>(type: "nvarchar(max)", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Fundraiser", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_Fundraiser_AspNetUsers_CreatedUserId",
+                        column: x => x.CreatedUserId,
+                        principalTable: "AspNetUsers",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "Product",
                 columns: table => new
                 {
@@ -234,6 +266,78 @@ namespace BitsAndBots.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "FundraiserImage",
+                columns: table => new
+                {
+                    Id = table.Column<long>(type: "bigint", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    FundraiserId = table.Column<long>(type: "bigint", nullable: false),
+                    ImageData = table.Column<byte[]>(type: "varbinary(max)", nullable: false),
+                    Index = table.Column<int>(type: "int", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_FundraiserImage", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_FundraiserImage_Fundraiser_FundraiserId",
+                        column: x => x.FundraiserId,
+                        principalTable: "Fundraiser",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "IndividualFundraiserParticipationRegistration",
+                columns: table => new
+                {
+                    Id = table.Column<long>(type: "bigint", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    FundraiserId = table.Column<long>(type: "bigint", nullable: false),
+                    UserId = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                    ParticipantLink = table.Column<string>(type: "nvarchar(max)", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_IndividualFundraiserParticipationRegistration", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_IndividualFundraiserParticipationRegistration_AspNetUsers_UserId",
+                        column: x => x.UserId,
+                        principalTable: "AspNetUsers",
+                        principalColumn: "Id");
+                    table.ForeignKey(
+                        name: "FK_IndividualFundraiserParticipationRegistration_Fundraiser_FundraiserId",
+                        column: x => x.FundraiserId,
+                        principalTable: "Fundraiser",
+                        principalColumn: "Id");
+                });
+
+            migrationBuilder.CreateTable(
+                name: "TeamFundraiserParticipationRegistration",
+                columns: table => new
+                {
+                    Id = table.Column<long>(type: "bigint", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    TeamName = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    FundraiserId = table.Column<long>(type: "bigint", nullable: false),
+                    UserId = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                    ParticipantLink = table.Column<string>(type: "nvarchar(max)", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_TeamFundraiserParticipationRegistration", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_TeamFundraiserParticipationRegistration_AspNetUsers_UserId",
+                        column: x => x.UserId,
+                        principalTable: "AspNetUsers",
+                        principalColumn: "Id");
+                    table.ForeignKey(
+                        name: "FK_TeamFundraiserParticipationRegistration_Fundraiser_FundraiserId",
+                        column: x => x.FundraiserId,
+                        principalTable: "Fundraiser",
+                        principalColumn: "Id");
+                });
+
+            migrationBuilder.CreateTable(
                 name: "ProductImage",
                 columns: table => new
                 {
@@ -253,6 +357,35 @@ namespace BitsAndBots.Migrations
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                 });
+
+            migrationBuilder.CreateTable(
+                name: "ApplicationUserTeamFundraiserParticipationRegistration",
+                columns: table => new
+                {
+                    FundraiserRegistrationTeamMembershipsId = table.Column<long>(type: "bigint", nullable: false),
+                    TeamMembersId = table.Column<string>(type: "nvarchar(450)", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_ApplicationUserTeamFundraiserParticipationRegistration", x => new { x.FundraiserRegistrationTeamMembershipsId, x.TeamMembersId });
+                    table.ForeignKey(
+                        name: "FK_ApplicationUserTeamFundraiserParticipationRegistration_AspNetUsers_TeamMembersId",
+                        column: x => x.TeamMembersId,
+                        principalTable: "AspNetUsers",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_ApplicationUserTeamFundraiserParticipationRegistration_TeamFundraiserParticipationRegistration_FundraiserRegistrationTeamMem~",
+                        column: x => x.FundraiserRegistrationTeamMembershipsId,
+                        principalTable: "TeamFundraiserParticipationRegistration",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateIndex(
+                name: "IX_ApplicationUserTeamFundraiserParticipationRegistration_TeamMembersId",
+                table: "ApplicationUserTeamFundraiserParticipationRegistration",
+                column: "TeamMembersId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_AspNetRoleClaims_RoleId",
@@ -304,6 +437,26 @@ namespace BitsAndBots.Migrations
                 column: "EventId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_Fundraiser_CreatedUserId",
+                table: "Fundraiser",
+                column: "CreatedUserId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_FundraiserImage_FundraiserId",
+                table: "FundraiserImage",
+                column: "FundraiserId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_IndividualFundraiserParticipationRegistration_FundraiserId",
+                table: "IndividualFundraiserParticipationRegistration",
+                column: "FundraiserId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_IndividualFundraiserParticipationRegistration_UserId",
+                table: "IndividualFundraiserParticipationRegistration",
+                column: "UserId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_Product_CreatedUserId",
                 table: "Product",
                 column: "CreatedUserId");
@@ -312,11 +465,24 @@ namespace BitsAndBots.Migrations
                 name: "IX_ProductImage_ProductId",
                 table: "ProductImage",
                 column: "ProductId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_TeamFundraiserParticipationRegistration_FundraiserId",
+                table: "TeamFundraiserParticipationRegistration",
+                column: "FundraiserId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_TeamFundraiserParticipationRegistration_UserId",
+                table: "TeamFundraiserParticipationRegistration",
+                column: "UserId");
         }
 
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
+            migrationBuilder.DropTable(
+                name: "ApplicationUserTeamFundraiserParticipationRegistration");
+
             migrationBuilder.DropTable(
                 name: "AspNetRoleClaims");
 
@@ -336,7 +502,16 @@ namespace BitsAndBots.Migrations
                 name: "EventImage");
 
             migrationBuilder.DropTable(
+                name: "FundraiserImage");
+
+            migrationBuilder.DropTable(
+                name: "IndividualFundraiserParticipationRegistration");
+
+            migrationBuilder.DropTable(
                 name: "ProductImage");
+
+            migrationBuilder.DropTable(
+                name: "TeamFundraiserParticipationRegistration");
 
             migrationBuilder.DropTable(
                 name: "AspNetRoles");
@@ -346,6 +521,9 @@ namespace BitsAndBots.Migrations
 
             migrationBuilder.DropTable(
                 name: "Product");
+
+            migrationBuilder.DropTable(
+                name: "Fundraiser");
 
             migrationBuilder.DropTable(
                 name: "AspNetUsers");
