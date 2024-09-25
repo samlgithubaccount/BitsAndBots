@@ -10,14 +10,17 @@
     <InputFile @key=@(inputFileId) OnChange="LoadFiles" multiple accept="@FileUploadConstraints.AllowedExtensions" class="form-control" />
     <ValidationMessage For="@Field" class="text-danger" />
 </div>
-@for (int i = 0; i < Images.Count; ++i)
-{
-    var index = i;
-    <div class="mb-3" draggable="true" ondragover="event.preventDefault();" @ondragstart="@(() => OnDragStart(index))" @ondrop="@(() => OnDrop(index))">
-        <button class="btn btn-primary" type="button" @onclick="(()=> RemoveImage(Images[index]))">Remove</button>
-        <img src="@($"data:image/png;base64,{Convert.ToBase64String(Images[index].ImageData)}")" alt="Product Image" class="img-thumbnail" />
-    </div>
-}
+<div class="row">
+    @for (int i = 0; i < Images.Count; ++i)
+    {
+        var index = i;
+        <div class="cont container col-md-2 col-sm-6" draggable="true" ondragover="event.preventDefault();" @ondragstart="@(() => OnDragStart(index))" @ondrop="@(() => OnDrop(index))">
+            <button class="btn btn-primary img-remove" type="button" @onclick="(()=> RemoveImage(Images[index]))">X</button>
+            <img src="@($"data:image/png;base64,{Convert.ToBase64String(Images[index].ImageData)}")" alt="Product Image" class="img-thumbnail" />
+        </div>
+    }
+</div>
+
 
 @code {
     [Parameter]

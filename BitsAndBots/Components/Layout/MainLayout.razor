@@ -4,73 +4,77 @@
 
 
 <div class="page">
-    <article class="total-head box-shadow mb-3">
-        <div class="container top-head">
-            <img class="logo" src=" imgs/bitsandbotslogo.svg" />
-            <a class="navbar-brand" asp-area="" asp-page="/Home">Bits and Bots</a>
-            <div class="profile">
+
+    <div class="class=box-shadow mb-3">
+        <article class="total-head">
+            <div class="container top-head">
+                <img class="logo" src=" imgs/bitsandbotslogo.svg" />
+                <a class="navbar-brand" asp-area="" asp-page="/Home">Bits and Bots</a>
+
+                <div class="profile">
 
 
-                <NavLink script="border-right: 3px solid #FB5454;" class="nav-link border-right2" href="/account/login" Match="NavLinkMatch.All">
-                    <span class="nav-text" aria-hidden="true"></span>
-                    <p class="nav-text-2">log in</p>
-                </NavLink>
-                <NavLink class="nav-link" href="/account/register" Match="NavLinkMatch.All">
-                    <span class="nav-text" aria-hidden="true"></span>
-                    <p class="nav-text-2">Register</p>
-                </NavLink>
-            </div>
-        </div>
-        
-        <nav class="navbar navbar-expand border-bottom">
-            <div style="width: 100%;" class="container">
-
-                <div>
-                    <ul class="navbar-nav flex-grow-1">
-                        <li class="nav-item border-right">
-                            <NavLink class="nav-link" href="" Match="NavLinkMatch.All">
-                                <span aria-hidden="true"></span> 
-                                <p class="nav-text">HOME</p>
-                                <! img style="overflow:hidden;width:2vw;height:100%;" src=" imgs/home.svg" />
-                            </NavLink>
-                        </li>
-                        <li class="nav-item border-right">
-                            <NavLink class="nav-link" href="/products" Match="NavLinkMatch.All">
-                                <span aria-hidden="true"></span> 
-                                <p class="nav-text">PRODUCTS</p>
-                                <! img style="overflow:hidden;width:2vw;height:100%;" src=" imgs/products.svg" />
-                            </NavLink>
-                        </li>
-                        <li class="nav-item border-right">
-                            <NavLink class="nav-link" href="/events" Match="NavLinkMatch.All">
-                                <span aria-hidden="true"></span> 
-                                <p class="nav-text">EVENTS</p>
-                                <! img style="overflow:hidden;width:2vw;height:100%;" src=" imgs/events.svg" />
-                            </NavLink>
-                        </li>
-                        <li class="nav-item">
-                            <NavLink class="nav-link" href="/fundraisers" Match="NavLinkMatch.All">
-                                <span aria-hidden="true"></span> 
-                                <p class="nav-text">FUNDRAISERS</p>
-                                <! img style="overflow:hidden;width:2vw;height:100%;" src=" imgs/fundraiser.svg" />
-                            </NavLink>
-                        </li>
-                    </ul>
+                    <NavLink script="border-right: 3px solid #FB5454;" class="nav-link border-right2" href="/account/login" Match="NavLinkMatch.All">
+                        <span class="nav-text" aria-hidden="true"></span>
+                        <p class="nav-text-2">log in</p>
+                    </NavLink>
+                    <NavLink class="nav-link" href="/account/register" Match="NavLinkMatch.All">
+                        <span class="nav-text" aria-hidden="true"></span>
+                        <p class="nav-text-2">Register</p>
+                    </NavLink>
                 </div>
             </div>
-        </nav>
-    </article>
-    
-    <main>
         
+            <nav class="navbar navbar-expand border-bottom">
+                <div style="width: 100%;" class="container">
 
-        <article class="content px-4">
-            @Body
+                    <div>
+                        <ul class="navbar-nav flex-grow-1">
+                            <li class="nav-item border-right">
+                                <NavLink class="nav-link" href="" Match="NavLinkMatch.All">
+                                    <span aria-hidden="true"></span> 
+                                    <p class="nav-text">HOME</p>
+                                    <! img style="overflow:hidden;width:2vw;height:100%;" src=" imgs/home.svg" />
+                                </NavLink>
+                            </li>
+                            <li class="nav-item border-right">
+                                <NavLink class="nav-link" href="/products" Match="NavLinkMatch.All">
+                                    <span aria-hidden="true"></span> 
+                                    <p class="nav-text">PRODUCTS</p>
+                                    <! img style="overflow:hidden;width:2vw;height:100%;" src=" imgs/products.svg" />
+                                </NavLink>
+                            </li>
+                            <li class="nav-item border-right">
+                                <NavLink class="nav-link" href="/events" Match="NavLinkMatch.All">
+                                    <span aria-hidden="true"></span> 
+                                    <p class="nav-text">EVENTS</p>
+                                    <! img style="overflow:hidden;width:2vw;height:100%;" src=" imgs/events.svg" />
+                                </NavLink>
+                            </li>
+                            <li class="nav-item">
+                                <NavLink class="nav-link" href="/fundraisers" Match="NavLinkMatch.All">
+                                    <span aria-hidden="true"></span> 
+                                    <p class="nav-text">FUNDRAISERS</p>
+                                    <! img style="overflow:hidden;width:2vw;height:100%;" src=" imgs/fundraiser.svg" />
+                                </NavLink>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </nav>
         </article>
+    
+        <main>
+        
+
+            <article class="content px-4">
+                @Body
+            </article>
 
         
 
-    </main>
+        </main>
+    </div>
 </div>
 
 <article class="footer">

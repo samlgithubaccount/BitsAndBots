@@ -73,7 +73,7 @@ img {
 
 .scrollbox {
     height: auto;
-    min-height: 60vh;
+    min-height: 50vh;
     overflow: auto;
     padding-bottom: 10vh;
     background-color: #E6E6E6;

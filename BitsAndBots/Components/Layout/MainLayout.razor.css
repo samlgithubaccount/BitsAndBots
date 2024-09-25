@@ -30,9 +30,7 @@ a.navbar-brand {
     height: 100%;
 }
 
-a.active {
-    background-color: #E6651F;
-}
+
 
 p.nav-text {
     font: 2.5vh arial;
@@ -49,7 +47,7 @@ a.nav-link.active {
 }
 
 p.nav-text-2 {
-    color: #FB5454;
+    color: #ec8959;
 }
 
 .total-head {
@@ -63,8 +61,8 @@ p.nav-text-2 {
 }
 
 .navbar {
-    background-color: #FB5454;
-    max-width:auto;
+    background-image: linear-gradient(#ec8959, #df7a50);
+    max-width: auto;
 }
 
 .profile {
@@ -121,7 +119,7 @@ button.accept-policy {
 
 .footer {
     line-height: 10vh;
-    background-color: #FB5454;
+    background-image: linear-gradient(#ec8959, #ce6a46);
     position: fixed;
     left: 0;
     bottom: 0;

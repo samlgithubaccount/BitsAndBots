@@ -165,6 +165,107 @@ namespace BitsAndBots.Migrations
                     b.ToTable("EventImage");
                 });
 
+            modelBuilder.Entity("BitsAndBots.Models.Fundraiser", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<DateTime>("CreatedTimestamp")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("CreatedUserId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("EndTime")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("FundraiserLink")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("LastUpdatedTimestamp")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Location")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("StartTime")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Tags")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CreatedUserId");
+
+                    b.ToTable("Fundraiser");
+                });
+
+            modelBuilder.Entity("BitsAndBots.Models.FundraiserImage", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<long>("FundraiserId")
+                        .HasColumnType("bigint");
+
+                    b.Property<byte[]>("ImageData")
+                        .IsRequired()
+                        .HasColumnType("varbinary(max)");
+
+                    b.Property<int>("Index")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("FundraiserId");
+
+                    b.ToTable("FundraiserImage");
+                });
+
+            modelBuilder.Entity("BitsAndBots.Models.FundraiserParticipantionRegistration", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<long>("FundraiserId")
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("ParticipantLink")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("FundraiserId");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("FundraiserParticipationRegistration");
+                });
+
             modelBuilder.Entity("BitsAndBots.Models.Product", b =>
                 {
                     b.Property<long>("Id")
@@ -392,6 +493,47 @@ namespace BitsAndBots.Migrations
                     b.Navigation("Event");
                 });
 
+            modelBuilder.Entity("BitsAndBots.Models.Fundraiser", b =>
+                {
+                    b.HasOne("BitsAndBots.Data.ApplicationUser", "CreatedUser")
+                        .WithMany("Fundraisers")
+                        .HasForeignKey("CreatedUserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("CreatedUser");
+                });
+
+            modelBuilder.Entity("BitsAndBots.Models.FundraiserImage", b =>
+                {
+                    b.HasOne("BitsAndBots.Models.Fundraiser", "Fundraiser")
+                        .WithMany("Images")
+                        .HasForeignKey("FundraiserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Fundraiser");
+                });
+
+            modelBuilder.Entity("BitsAndBots.Models.FundraiserParticipantionRegistration", b =>
+                {
+                    b.HasOne("BitsAndBots.Models.Fundraiser", "Fundraiser")
+                        .WithMany("ParticipationRegistrations")
+                        .HasForeignKey("FundraiserId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
+                    b.HasOne("BitsAndBots.Data.ApplicationUser", "User")
+                        .WithMany("FundraiserRegistrations")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
+                    b.Navigation("Fundraiser");
+
+                    b.Navigation("User");
+                });
+
             modelBuilder.Entity("BitsAndBots.Models.Product", b =>
                 {
                     b.HasOne("BitsAndBots.Data.ApplicationUser", "CreatedUser")
@@ -469,12 +611,23 @@ namespace BitsAndBots.Migrations
                 {
                     b.Navigation("Events");
 
+                    b.Navigation("FundraiserRegistrations");
+
+                    b.Navigation("Fundraisers");
+
                     b.Navigation("Products");
                 });
 
             modelBuilder.Entity("BitsAndBots.Models.Event", b =>
                 {
                     b.Navigation("Images");
+                });
+
+            modelBuilder.Entity("BitsAndBots.Models.Fundraiser", b =>
+                {
+                    b.Navigation("Images");
+
+                    b.Navigation("ParticipationRegistrations");
                 });
 
             modelBuilder.Entity("BitsAndBots.Models.Product", b =>
