@@ -1,0 +1,213 @@
+﻿@page "/fundraisers/details"
+
+@using BitsAndBots.Configuration
+@using BitsAndBots.Data
+@using BitsAndBots.Service
+@using Microsoft.EntityFrameworkCore
+@using BitsAndBots.Models
+@using Microsoft.AspNetCore.Components.QuickGrid
+@inject IConfiguration Configuration
+@inject IDbContextFactory<BitsAndBots.Data.ApplicationDbContext> DbFactory
+@inject NavigationManager NavigationManager
+@inject UserService UserService
+
+@rendermode InteractiveServer
+
+<PageTitle>Details</PageTitle>
+
+<h1>Details</h1>
+
+<a href="@($"/fundraisers")">Back</a>
+
+<div>
+    <h4>Fundraiser</h4>
+    <hr />
+    @if (fundraiser is null)
+    {
+        <p><em>Loading...</em></p>
+    }
+    else {
+        <dl class="row">
+            <dt class="col-sm-2">Title</dt>
+            <dd class="col-sm-10">@fundraiser.Title</dd>
+            <dt class="col-sm-2">Description</dt>
+            <dd class="col-sm-10">@fundraiser.Description</dd>
+            <dt class="col-sm-2">Start</dt>
+            <dd class="col-sm-10">@fundraiser.StartTime</dd>
+            <dt class="col-sm-2">End</dt>
+            <dd class="col-sm-10">@fundraiser.EndTime</dd>
+            <dt class="col-sm-2">Fundraiser Link</dt>
+            <dd class="col-sm-10">@fundraiser.FundraiserLink</dd>
+            <dt class="col-sm-2">Location</dt>
+            <dd class="col-sm-10">@fundraiser.Location</dd>
+            <dt class="col-sm-2">CreatedBy</dt>
+            <dd class="col-sm-10">@fundraiser.CreatedUser.Email</dd>
+            <dt class="col-sm-2">Created</dt>
+            <dd class="col-sm-10">@fundraiser.CreatedTimestamp</dd>
+            <dt class="col-sm-2">Last Updated</dt>
+            <dd class="col-sm-10">@fundraiser.LastUpdatedTimestamp</dd>
+            <dt class="col-sm-2">Image</dt>
+            <dd class="col-sm-10">
+                @foreach(var image in fundraiser.Images)
+                {
+                    <img src="data:image;base64,@System.Convert.ToBase64String(image.ImageData)" />
+                }
+            </dd>
+        </dl>
+        
+        @if (fundraiser.SupportsIndividualRegistration)
+		{
+            <QuickGrid Items="individualFundraiserParticipationRegistrations">
+                <PropertyColumn Property="r => r.User.UserName" Title="Username" />
+                @if (fundraiser.SupportsParticipantLinks)
+                {
+                    <PropertyColumn Property="r => r.ParticipantLink" Title="Participant Link" />
+                }
+            </QuickGrid>
+		}
+
+
+        @if (fundraiser.SupportsTeamRegistration) {
+            <QuickGrid Items="teamFundraiserParticipationRegistrations">
+                <PropertyColumn Property="r => r.User.UserName" Title="Username" />
+                @if (fundraiser.SupportsParticipantLinks)
+                {
+                    <PropertyColumn Property="r => r.ParticipantLink" Title="Participant Link" />
+                }
+                <TemplateColumn Context="teamFundraiserParticipationRegistrations" Title="Team Members">
+                    <ul>
+                        @foreach (var teamMember in teamFundraiserParticipationRegistrations.TeamMembers)
+                        {
+                            <li>@teamMember.UserName</li>
+                        }
+                    </ul>
+                </TemplateColumn>
+            </QuickGrid>
+        }
+
+
+
+        @if (CanCurrentUserModifyFundraiser)
+        {
+            <div>
+                <a href="@($"/fundraisers/edit?id={fundraiser.Id}")">Edit</a>
+                <EditForm method="post" Model="fundraiser" OnValidSubmit="DeleteFundraiser" FormName="delete" Enhance>
+                    <button type="submit" class="btn btn-danger" disabled="@(fundraiser is null)">Delete</button>
+                </EditForm>
+            </div>
+        }
+
+        <a href="@($"/teamfundraiserparticipationregistrations/create?fundraiserId={fundraiser.Id}")">Register</a>
+    }
+</div>
+
+@code {
+    //[SupplyParameterFromForm(FormName = "register")]
+    //FundraiserParticipantRegistration participationRegistration { get; set; } = new();
+    Fundraiser? fundraiser;
+    //bool registrationSubmitted;
+    //IList<string> registrationValidationMessages = new List<string>();
+    IQueryable<IndividualFundraiserParticipationRegistration> individualFundraiserParticipationRegistrations = default!;
+    IQueryable<TeamFundraiserParticipationRegistration> teamFundraiserParticipationRegistrations = default!;
+
+    public ApplicationUser CurrentUser { get; set; }
+
+    private ApplicationDbContext participantsContext = default!;
+
+    [SupplyParameterFromQuery]
+    public long Id { get; set; }
+
+    public bool CanCurrentUserModifyFundraiser { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        CurrentUser = await UserService.GetCurrentUser();
+
+        using var context = DbFactory.CreateDbContext();
+        fundraiser = await context.Fundraiser
+            .Include(e => e.Images.OrderBy(i => i.Index))
+            .Include(e => e.CreatedUser)
+            .FirstOrDefaultAsync(m => m.Id == Id);
+
+        if (fundraiser is null)
+        {
+            NavigationManager.NavigateTo("notfound");
+        }
+
+        if (fundraiser.SupportsIndividualRegistration)
+        {
+            individualFundraiserParticipationRegistrations = await GetIndividualFundraiserRegistrations();
+        }
+        if (fundraiser.SupportsTeamRegistration)
+        {
+            teamFundraiserParticipationRegistrations = await GetTeamFundraiserRegistrations();
+        }
+
+        CanCurrentUserModifyFundraiser = await UserCreatedFundraiserOrIsAdministrator();
+    }
+
+    public async Task DeleteFundraiser()
+    {
+        using var context = DbFactory.CreateDbContext();
+        context.Fundraiser.Remove(fundraiser!);
+        await context.SaveChangesAsync();
+        NavigationManager.NavigateTo("/fundraisers");
+    }
+
+    private async Task<IQueryable<IndividualFundraiserParticipationRegistration>> GetIndividualFundraiserRegistrations()
+    {
+        using var context = DbFactory.CreateDbContext();
+        var registrations = await context.IndividualFundraiserParticipationRegistration
+            .Include(r => r.User)
+            .Where(r => r.FundraiserId == fundraiser.Id)
+            .OrderBy(r => r.Id)
+            .ToListAsync();
+        return registrations.AsQueryable();
+    }
+
+    private async Task<IQueryable<TeamFundraiserParticipationRegistration>> GetTeamFundraiserRegistrations()
+    {
+        using var context = DbFactory.CreateDbContext();
+        var registrations = await context.TeamFundraiserParticipationRegistration
+            .Include(r => r.User)
+            .Include(r => r.TeamMembers)
+            .Where(r => r.FundraiserId == fundraiser.Id)
+            .OrderBy(r => r.Id)
+            .ToListAsync();
+        return registrations.AsQueryable();
+    }
+
+  //   public async Task SubmitParticipationRegistration()
+  //   {
+  //       if (registrationSubmitted)
+		// {
+		// 	return;
+		// }
+
+  //       registrationValidationMessages.Clear();
+
+  //       using var context = DbFactory.CreateDbContext();
+
+  //       var existingRegistration = await context.FundraiserParticipationRegistration
+  //           .FirstOrDefaultAsync(registration => registration.UserId == CurrentUser.Id && registration.FundraiserId == fundraiser.Id);
+
+  //       if (existingRegistration != null) {
+  //           registrationValidationMessages.Add("You have already registered for this fundraiser.");
+  //           return;
+  //       }
+
+  //       participationRegistration.FundraiserId = fundraiser!.Id;
+  //       participationRegistration.UserId = CurrentUser.Id;
+
+  //       context.FundraiserParticipationRegistration.Add(participationRegistration);
+  //       await context.SaveChangesAsync();
+  //       registrationSubmitted = true;
+  //   }
+
+    public async Task<bool> UserCreatedFundraiserOrIsAdministrator()
+	{
+        var currentUser = await UserService.GetCurrentUser();
+        var currentUserRoles = await UserService.GetCurrentUserRoles();
+		return currentUser != null && (fundraiser.CreatedUserId == currentUser.Id || currentUserRoles.Contains("Administrator"));
+	}
+}

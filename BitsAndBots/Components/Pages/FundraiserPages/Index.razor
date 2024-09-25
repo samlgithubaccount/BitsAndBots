@@ -1,4 +1,4 @@
-﻿@page "/events"
+﻿@page "/fundraisers"
 
 @using Microsoft.EntityFrameworkCore
 @using Microsoft.AspNetCore.Components.QuickGrid
@@ -8,68 +8,71 @@
 @rendermode InteractiveServer
 
 
-<PageTitle>Events</PageTitle>
+<PageTitle>Fundraisers</PageTitle>
 
-<h1>Events</h1>
+<h1>Fundraisers</h1>
 
-<form @onsubmit="GetEvents">
-    <InputText @bind-Value="SearchQuery" placeholder="Search for an event..." />
+<form @onsubmit="GetFundraisers">
+    <InputText @bind-Value="SearchQuery" placeholder="Search for a fundraiser..." />
     <button class="btn btn-primary">Search</button>
     <label for="sort-by">Sort by</label>
-    <select @bind="SortBy" @bind:after="GetEvents">
-        @foreach (var sortOption in EventSortOptions.GetAll())
+    <select @bind="SortBy" @bind:after="GetFundraisers" >
+        @foreach (var sortOption in FundraiserSortOptions.GetAll())
 		{
 			<option value="@sortOption.DisplayName">@sortOption.DisplayName</option>
 		}
     </select>
 </form>
 
-@if (!Events.Any())
-{
-    
+@if (!Fundraisers.Any()) {
 } else {
-    foreach (var e in Events) {
+    foreach (var e in Fundraisers) {
         <div>
-            <a href="@($"events/details?id={e.Id}")">
+            <a href="@($"fundraisers/details?id={e.Id}")">
                 <img src="data:image;base64,@System.Convert.ToBase64String(e.Images.First().ImageData)" />
                 @e.Title
-                @e.StartTime.ToString("yyyy-MM-dd HH:mm")
+                @e.StartTime.ToString("yyyy-MM-dd HH:mm") - @e.EndTime.ToString("yyyy-MM-dd HH:mm")
                 @if (DateTime.Now >= e.StartTime && DateTime.Now < e.EndTime)
                 {
-                    <span class="badge bg-success">On Now</span>
+                    <span class="badge bg-success">In Progress</span>
+                }
+                else if (DateTime.Now < e.StartTime)
+                {
+                    <span class="badge bg-warning">Upcoming</span>
                 }
             </a>
         </div>
     }
 }
 
+
 <div>
-    <p>Running your own entrepreneurship related event?</p>
+    <p>Running or participating in a fundraiser?</p>
     <p>
-        <a href="events/create">Advertise your event!</a>
+        <a href="fundraisers/create">Advertise it here!</a>
     </p>
 </div>
 
 
 @code {
-    private EventSortOptions EventSortOptions = new();
+    private FundraiserSortOptions FundraiserSortOptions = new();
     private string SearchQuery { get; set; } = "";
     private string SortBy { get; set; }
-    private List<Event> Events { get; set; } = new();
+    private List<Fundraiser> Fundraisers { get; set; } = new();
 
     protected override async Task OnInitializedAsync()
     {
-        SortBy = EventSortOptions.GetDefault().DisplayName;
-        await GetEvents();
+        SortBy = FundraiserSortOptions.GetDefault().DisplayName;
+        await GetFundraisers();
     }
 
-    private async Task GetEvents()
+    private async Task GetFundraisers()
     {
         using var context = DbFactory.CreateDbContext();
 
-        var sortOption = EventSortOptions.GetByDisplayName(SortBy);
+        var sortOption = FundraiserSortOptions.GetByDisplayName(SortBy);
 
-        var query = context.Event
+        var query = context.Fundraiser
             .Include(e => e.Images.OrderBy(i => i.Index))
             .Where(e => e.EndTime > DateTime.Now)
             .Where(e => e.Title.Contains(SearchQuery));
@@ -78,6 +81,6 @@
             ? query.OrderBy(sortOption.KeySelector)
             : query.OrderByDescending(sortOption.KeySelector);
 
-        Events = await query.ToListAsync();
+        Fundraisers = await query.ToListAsync();
 	}
 }

@@ -1,4 +1,4 @@
-﻿@page "/Products/edit"
+﻿@page "/products/edit"
 
 @using BitsAndBots.Configuration
 @using BitsAndBots.Data
@@ -132,6 +132,8 @@ else
         {
             context.Entry(image).State = EntityState.Deleted;
         }
+
+        Product.LastUpdatedTimestamp = DateTime.Now;
 
         try
         {
