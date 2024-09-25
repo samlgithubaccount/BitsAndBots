@@ -8,28 +8,25 @@
 @rendermode InteractiveServer
 
 
-<PageTitle>Index</PageTitle>
+<PageTitle>Events</PageTitle>
 
-<h1>Index</h1>
-
-@* TODO: Only show when logged in or change it to dislay something like sign up? *@
-<p>
-    <a href="events/create">Create New</a>
-</p>
+<h1>Events</h1>
 
 <form @onsubmit="GetEvents">
     <InputText @bind-Value="SearchQuery" placeholder="Search for an event..." />
     <button class="btn btn-primary">Search</button>
     <label for="sort-by">Sort by</label>
-    <select @bind="SortBy" @bind:after="GetEvents" name="sort-by" id="cars">
+    <select @bind="SortBy" @bind:after="GetEvents">
         @foreach (var sortOption in EventSortOptions.GetAll())
 		{
 			<option value="@sortOption.DisplayName">@sortOption.DisplayName</option>
-		})
+		}
     </select>
 </form>
 
-@if (!Events.Any()) {
+@if (!Events.Any())
+{
+    
 } else {
     foreach (var e in Events) {
         <div>
@@ -41,32 +38,28 @@
                 {
                     <span class="badge bg-success">On Now</span>
                 }
-                    //TODO: Do we want to add a filter for past events
-                @* 				else if (DateTime.Now < e.StartTime)
-        {
-        <span class="badge bg-warning">Upcoming</span>
-        } *@
-                @* 				else
-        {
-        <span class="badge bg-danger">Expired</span>
-        } *@
             </a>
         </div>
     }
 }
 
+<div>
+    <p>Running your own entrepreneurship related event?</p>
+    <p>
+        <a href="events/create">Advertise your event!</a>
+    </p>
+</div>
+
 
 @code {
-    EventSortOptions EventSortOptions = new();
-
-    public string SearchQuery { get; set; } = "";
-    public string SortBy { get; set; }
-    public List<Event> Events { get; set; } = new();
+    private EventSortOptions EventSortOptions = new();
+    private string SearchQuery { get; set; } = "";
+    private string SortBy { get; set; }
+    private List<Event> Events { get; set; } = new();
 
     protected override async Task OnInitializedAsync()
     {
         SortBy = EventSortOptions.GetDefault().DisplayName;
-
         await GetEvents();
     }
 

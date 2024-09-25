@@ -8,28 +8,25 @@
 @rendermode InteractiveServer
 
 
-<PageTitle>Index</PageTitle>
+<PageTitle>Products</PageTitle>
 
-<h1>Index</h1>
-
-@* TODO: Only show when logged in or change it to dislay something like sign up? *@
-<p>
-    <a href="products/create">Create New</a>
-</p>
+<h1>Products</h1>
 
 <form @onsubmit="GetProducts">
     <InputText @bind-Value="SearchQuery" placeholder="Search for a product..." />
     <button class="btn btn-primary">Search</button>
     <label for="sort-by">Sort by</label>
-    <select @bind="SortBy" @bind:after="GetProducts" name="sort-by" id="cars">
+    <select @bind="SortBy" @bind:after="GetProducts">
         @foreach (var sortOption in ProductSortOptions.GetAll())
 		{
 			<option value="@sortOption.DisplayName">@sortOption.DisplayName</option>
-		})
+		}
     </select>
 </form>
 
-@if (!Products.Any()) {
+@if (!Products.Any())
+{
+    
 } else {
     foreach (var product in Products) {
         <div>
@@ -41,18 +38,23 @@
     }
 }
 
+<div>
+    <p>Have a product you want to bring to market?</p>
+    <p>
+        <a href="products/create">List it here!</a>
+    </p>
+</div>
+
 
 @code {
-    ProductSortOptions ProductSortOptions = new();
-
-    public string SearchQuery { get; set; } = "";
-    public string SortBy { get; set; }
-    public List<Product> Products { get; set; } = new();
+    private ProductSortOptions ProductSortOptions = new();
+    private string SearchQuery { get; set; } = "";
+    private string SortBy { get; set; }
+    private List<Product> Products { get; set; } = new();
 
     protected override async Task OnInitializedAsync()
     {
         SortBy = ProductSortOptions.GetDefault().DisplayName;
-
         await GetProducts();
     }
 

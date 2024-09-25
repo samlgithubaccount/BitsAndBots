@@ -8,24 +8,19 @@
 @rendermode InteractiveServer
 
 
-<PageTitle>Index</PageTitle>
+<PageTitle>Fundraisers</PageTitle>
 
-<h1>Index</h1>
-
-@* TODO: Only show when logged in or change it to dislay something like sign up? *@
-<p>
-    <a href="fundraisers/create">Create New</a>
-</p>
+<h1>Fundraisers</h1>
 
 <form @onsubmit="GetFundraisers">
     <InputText @bind-Value="SearchQuery" placeholder="Search for a fundraiser..." />
     <button class="btn btn-primary">Search</button>
     <label for="sort-by">Sort by</label>
-    <select @bind="SortBy" @bind:after="GetFundraisers" name="sort-by" id="cars">
+    <select @bind="SortBy" @bind:after="GetFundraisers" >
         @foreach (var sortOption in FundraiserSortOptions.GetAll())
 		{
 			<option value="@sortOption.DisplayName">@sortOption.DisplayName</option>
-		})
+		}
     </select>
 </form>
 
@@ -36,37 +31,38 @@
             <a href="@($"fundraisers/details?id={e.Id}")">
                 <img src="data:image;base64,@System.Convert.ToBase64String(e.Images.First().ImageData)" />
                 @e.Title
-                @e.StartTime.ToString("yyyy-MM-dd HH:mm")
+                @e.StartTime.ToString("yyyy-MM-dd HH:mm") - @e.EndTime.ToString("yyyy-MM-dd HH:mm")
                 @if (DateTime.Now >= e.StartTime && DateTime.Now < e.EndTime)
                 {
                     <span class="badge bg-success">In Progress</span>
                 }
-                    //TODO: Do we want to add a filter for past events
-                @* 				else if (DateTime.Now < e.StartTime)
-        {
-        <span class="badge bg-warning">Upcoming</span>
-        } *@
-                @* 				else
-        {
-        <span class="badge bg-danger">Expired</span>
-        } *@
+                else if (DateTime.Now < e.StartTime)
+                {
+                    <span class="badge bg-warning">Upcoming</span>
+                }
             </a>
         </div>
     }
 }
 
 
-@code {
-    FundraiserSortOptions FundraiserSortOptions = new();
+<div>
+    <p>Running or participating in a fundraiser?</p>
+    <p>
+        <a href="fundraisers/create">Advertise it here!</a>
+    </p>
+</div>
 
-    public string SearchQuery { get; set; } = "";
-    public string SortBy { get; set; }
-    public List<Fundraiser> Fundraisers { get; set; } = new();
+
+@code {
+    private FundraiserSortOptions FundraiserSortOptions = new();
+    private string SearchQuery { get; set; } = "";
+    private string SortBy { get; set; }
+    private List<Fundraiser> Fundraisers { get; set; } = new();
 
     protected override async Task OnInitializedAsync()
     {
         SortBy = FundraiserSortOptions.GetDefault().DisplayName;
-
         await GetFundraisers();
     }
 
