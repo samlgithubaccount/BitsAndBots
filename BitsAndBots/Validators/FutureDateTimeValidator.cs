@@ -2,7 +2,7 @@
 
 namespace BitsAndBots.Validators
 {
-    public class FutureDateTime : ValidationAttribute
+    public class FutureDateTimeValidator : ValidationAttribute
     {
         public override bool IsValid(object? value)
         {

@@ -73,11 +73,11 @@
                     {
                         <div class="mb-3">
                             <label for="participantlink" class="form-label">ParticipantLink:</label>
-                            <InputText id="participantlink" @bind-Value="TeamFundraiserParticipationRegistration.ParticipantLink" class="form-control" />
-                            <ValidationMessage For="() => TeamFundraiserParticipationRegistration.ParticipantLink" class="text-danger" />
+                            <InputText id="participantlink" @bind-Value="ParticipantLink" class="form-control" />
+                            <ValidationMessage For="() => ParticipantLink" class="text-danger" />
                         </div>
                     }
-                    <button type="submit" class="btn btn-primary">Create</button>
+                    <button type="submit" class="btn btn-primary">Register</button>
                 </EditForm>
             } else
             {
@@ -87,12 +87,12 @@
                     @if (Fundraiser.SupportsParticipantLinks)
                     {
                         <div class="mb-3">
-                            <label for="participantlink" class="form-label">ParticipantLink:</label>
-                            <InputText id="participantlink" @bind-Value="IndividualFundraiserParticipationRegistration.ParticipantLink" class="form-control" />
-                            <ValidationMessage For="() => IndividualFundraiserParticipationRegistration.ParticipantLink" class="text-danger" />
+                            <label for="participantlink" class="form-label">Participant Link:</label>
+                            <InputText id="participantlink" @bind-Value="ParticipantLink" class="form-control" />
+                            <ValidationMessage For="() => ParticipantLink" class="text-danger" />
                         </div>
                     }
-                    <button type="submit" class="btn btn-primary">Create</button>
+                    <button type="submit" class="btn btn-primary">Register</button>
                 </EditForm>
             }
             
@@ -101,7 +101,7 @@
 </div>
 
 <div>
-    <a href="/teamfundraiserparticipationregistrations">Back to List</a>
+    <a href="@($"/fundraisers/details?id={FundraiserId}")">Back to List</a>
 </div>
 
 @code {
@@ -111,6 +111,7 @@
     private TeamFundraiserParticipationRegistration TeamFundraiserParticipationRegistration { get; set; } = new();
     [SupplyParameterFromForm]
     private IndividualFundraiserParticipationRegistration IndividualFundraiserParticipationRegistration { get; set; } = new();
+    private string ParticipantLink { get; set; }
 
     public ApplicationUser CurrentUser { get; set; }
     private Fundraiser Fundraiser;
@@ -183,6 +184,7 @@
         {
             TeamFundraiserParticipationRegistration.FundraiserId = FundraiserId;
             TeamFundraiserParticipationRegistration.UserId = CurrentUser.Id;
+            TeamFundraiserParticipationRegistration.ParticipantLink = ParticipantLink;
 
             foreach (var teamMember in TeamFundraiserParticipationRegistration.TeamMembers)
             {
@@ -195,11 +197,12 @@
         {
             IndividualFundraiserParticipationRegistration.FundraiserId = FundraiserId;
             IndividualFundraiserParticipationRegistration.UserId = CurrentUser.Id;
+            IndividualFundraiserParticipationRegistration.ParticipantLink = ParticipantLink;
             context.IndividualFundraiserParticipationRegistration.Add(IndividualFundraiserParticipationRegistration);
         }
 
         await context.SaveChangesAsync();
-        NavigationManager.NavigateTo("/teamfundraiserparticipationregistrations");
+        NavigationManager.NavigateTo($"/fundraisers/details?id={FundraiserId}");
     }
 
     private void RemoveUser(ApplicationUser user)

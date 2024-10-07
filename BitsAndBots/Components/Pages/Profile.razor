@@ -2,80 +2,161 @@
 
 @using System.ComponentModel.DataAnnotations
 @using BitsAndBots.Components.Account
+@using BitsAndBots.Models
+@using BitsAndBots.Service
 @using Microsoft.AspNetCore.Identity
 @using BitsAndBots.Data
+@using Microsoft.EntityFrameworkCore
 
+@inject IDbContextFactory<BitsAndBots.Data.ApplicationDbContext> DbFactory
+@inject NavigationManager NavigationManager
 @inject UserManager<ApplicationUser> UserManager
-@inject SignInManager<ApplicationUser> SignInManager
-@inject IdentityUserAccessor UserAccessor
-@inject IdentityRedirectManager RedirectManager
+@inject UserService UserService
 
 <PageTitle>@username - Profile</PageTitle>
 
 <h3>@username</h3>
-<StatusMessage />
+<AuthorizeView>
+    @if (IsCurrentUserProfile)
+    {
+        <a href="Account/Manage">Manage account</a>
+    }
+</AuthorizeView>
 
-<div class="row">
-    <div class="col-md-6">
-        <EditForm Model="Input" FormName="profile" OnValidSubmit="OnValidSubmitAsync" method="post">
-            <DataAnnotationsValidator />
-            <ValidationSummary class="text-danger" role="alert" />
-            <div class="form-floating mb-3">
-                <input type="text" value="@username" class="form-control" placeholder="Please choose your username." disabled />
-                <label for="username" class="form-label">Username</label>
+
+@* TODO: All product class?
+TODO: Navigate correctly *@
+ @if (!Products.Any())
+ {
+ }
+ else
+ {
+     <h4>Products</h4>
+     <div class="col-lg-9 col-md-12 scrollbox">
+         @foreach (var product in Products)
+         {
+             <div class="product-info">
+                 <a href="@($"products/details?id={product.Id}")">
+                     <img src="data:image;base64,@System.Convert.ToBase64String(product.Images.First().ImageData)" />
+                     <div class="name">@product.Title</div>
+                 </a>
+             </div>
+         }
+     </div>
+ }
+
+@if (!Events.Any())
+{
+}
+else
+{
+    <h4>Events</h4>
+    <div class="col-lg-9 col-md-12 scrollbox">
+        @foreach (var e in Events)
+        {
+            <div class="product-info">
+                <a href="@($"events/details?id={e.Id}")">
+                    <img src="data:image;base64,@System.Convert.ToBase64String(e.Images.First().ImageData)" />
+                    <div class="name">@e.Title</div>
+                </a>
             </div>
-            <div class="form-floating mb-3">
-                <InputText @bind-Value="Input.PhoneNumber" class="form-control" placeholder="Please enter your phone number." />
-                <label for="phone-number" class="form-label">Phone number</label>
-                <ValidationMessage For="() => Input.PhoneNumber" class="text-danger" />
-            </div>
-            <button type="submit" class="w-100 btn btn-lg btn-primary">Save</button>
-        </EditForm>
+        }
     </div>
-</div>
+}
+
+@if (!IndividualFundraiserRegistrations.Any())
+{
+}
+else
+{
+    <h4>Individual Fundraiser Registrations</h4>
+    <div class="col-lg-9 col-md-12 scrollbox">
+        @foreach (var registration in IndividualFundraiserRegistrations)
+        {
+            <div class="product-info">
+                    <a href="@($"fundraisers/details?id={registration.FundraiserId}")">
+                        <img src="data:image;base64,@System.Convert.ToBase64String(registration.Fundraiser.Images.First().ImageData)" />
+                        <div class="name">@registration.Fundraiser.Title</div>
+                </a>
+            </div>
+            @if (!string.IsNullOrWhiteSpace(registration.ParticipantLink))
+            {
+                <a href="@registration.ParticipantLink">@registration.ParticipantLink</a>
+            }
+        }
+    </div>
+}
+
+@if (!TeamFundraiserRegistrations.Any())
+{
+}
+else
+{
+    <h4>Team Fundraiser Registrations</h4>
+    <div class="col-lg-9 col-md-12 scrollbox">
+        @foreach (var registration in TeamFundraiserRegistrations)
+        {
+            <div class="product-info">
+                <a href="@($"fundraisers/details?id={registration.FundraiserId}")">
+                    <img src="data:image;base64,@System.Convert.ToBase64String(registration.Fundraiser.Images.First().ImageData)" />
+                    <div class="name">@registration.Fundraiser.Title</div>
+                </a>
+            </div>
+            <span>@registration.TeamName</span>
+            @if (!string.IsNullOrWhiteSpace(registration.ParticipantLink))
+            {
+                <a href="@registration.ParticipantLink">@registration.ParticipantLink</a>
+            }
+        }
+    </div>
+}
+
+
 
 @code {
     [Parameter]
-    public string userName { get; set; }
+    public string username { get; set; }
 
     private ApplicationUser user = default!;
-    private string? username;
-    private string? phoneNumber;
 
-    [CascadingParameter]
-    private HttpContext HttpContext { get; set; } = default!;
+    private bool IsCurrentUserProfile { get; set; }
 
-    [SupplyParameterFromForm]
-    private InputModel Input { get; set; } = new();
+    private List<Product> Products { get; set; } = new();
+    private List<Event> Events { get; set; } = new();
+    private List<IndividualFundraiserParticipationRegistration> IndividualFundraiserRegistrations { get; set; } = new();
+    private List<TeamFundraiserParticipationRegistration> TeamFundraiserRegistrations { get; set; } = new();
 
     protected override async Task OnInitializedAsync()
     {
-        user = await UserAccessor.GetRequiredUserAsync(HttpContext);
-        username = await UserManager.GetUserNameAsync(user);
-        phoneNumber = await UserManager.GetPhoneNumberAsync(user);
+        user = await UserManager.FindByNameAsync(username);
 
-        Input.PhoneNumber ??= phoneNumber;
-    }
-
-    private async Task OnValidSubmitAsync()
-    {
-        if (Input.PhoneNumber != phoneNumber)
+        if (user is null)
         {
-            var setPhoneResult = await UserManager.SetPhoneNumberAsync(user, Input.PhoneNumber);
-            if (!setPhoneResult.Succeeded)
-            {
-                RedirectManager.RedirectToCurrentPageWithStatus("Error: Failed to set phone number.", HttpContext);
-            }
+            NavigationManager.NavigateTo("notfound");
         }
 
-        await SignInManager.RefreshSignInAsync(user);
-        RedirectManager.RedirectToCurrentPageWithStatus("Your profile has been updated", HttpContext);
-    }
+        var currentUser = await UserService.GetCurrentUser();
+        IsCurrentUserProfile = currentUser.Id == user.Id;
 
-    private sealed class InputModel
-    {
-        [Phone]
-        [Display(Name = "Phone number")]
-        public string? PhoneNumber { get; set; }
+        using var context = DbFactory.CreateDbContext();
+
+        Products = await context.Product
+            .Include(p => p.Images)
+            .Where(p => p.CreatedUserId == user.Id)
+            .ToListAsync();
+        Events = await context.Event
+            .Include(e => e.Images)
+            .Where(e => e.CreatedUserId == user.Id)
+            .ToListAsync();
+        IndividualFundraiserRegistrations = await context.IndividualFundraiserParticipationRegistration
+            .Include(r => r.Fundraiser)
+            .ThenInclude(f => f.Images)
+            .Where(r => r.UserId == user.Id)
+            .ToListAsync();
+        TeamFundraiserRegistrations = await context.TeamFundraiserParticipationRegistration
+            .Include(r => r.Fundraiser)
+            .ThenInclude(f => f.Images)
+            .Where(r => r.UserId == user.Id || r.TeamMembers.Any(u => u.Id == user.Id))
+            .ToListAsync();
     }
 }

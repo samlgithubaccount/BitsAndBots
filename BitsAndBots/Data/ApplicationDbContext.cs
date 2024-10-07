@@ -77,6 +77,7 @@ namespace BitsAndBots.Data
             modelBuilder.Entity<IndividualFundraiserParticipationRegistration>(static entity =>
             {
                 entity.HasKey(registration => registration.Id);
+
                 entity.HasOne(registration => registration.User)
                     .WithMany(user => user.IndividualFundraiserRegistrations)
                     .HasForeignKey(registration => registration.UserId)

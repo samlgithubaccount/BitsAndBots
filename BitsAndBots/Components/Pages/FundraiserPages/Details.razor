@@ -57,31 +57,35 @@
         
         @if (fundraiser.SupportsIndividualRegistration)
 		{
-            <QuickGrid Items="individualFundraiserParticipationRegistrations">
+            <QuickGrid class="table" Items="individualFundraiserParticipationRegistrations">
                 <PropertyColumn Property="r => r.User.UserName" Title="Username" />
                 @if (fundraiser.SupportsParticipantLinks)
                 {
-                    <PropertyColumn Property="r => r.ParticipantLink" Title="Participant Link" />
+                    <TemplateColumn Context="individualfundraiserparticipationregistration" Title="Participant Link">
+                        <a href="@individualfundraiserparticipationregistration.ParticipantLink">@individualfundraiserparticipationregistration.ParticipantLink</a>
+                    </TemplateColumn>
                 }
             </QuickGrid>
 		}
 
 
         @if (fundraiser.SupportsTeamRegistration) {
-            <QuickGrid Items="teamFundraiserParticipationRegistrations">
+            <QuickGrid class="table" Items="teamFundraiserParticipationRegistrations">
                 <PropertyColumn Property="r => r.User.UserName" Title="Username" />
-                @if (fundraiser.SupportsParticipantLinks)
-                {
-                    <PropertyColumn Property="r => r.ParticipantLink" Title="Participant Link" />
-                }
-                <TemplateColumn Context="teamFundraiserParticipationRegistrations" Title="Team Members">
+                <TemplateColumn Context="teamfundraiserparticipationregistration" Title="Team Members">
                     <ul>
-                        @foreach (var teamMember in teamFundraiserParticipationRegistrations.TeamMembers)
+                        @foreach (var teamMember in teamfundraiserparticipationregistration.TeamMembers)
                         {
                             <li>@teamMember.UserName</li>
                         }
                     </ul>
                 </TemplateColumn>
+                @if (fundraiser.SupportsParticipantLinks)
+                {
+                    <TemplateColumn Context="teamfundraiserparticipationregistration" Title="Participant Link">
+                        <a href="@teamfundraiserparticipationregistration.ParticipantLink">@teamfundraiserparticipationregistration.ParticipantLink</a>
+                    </TemplateColumn>
+                }
             </QuickGrid>
         }
 
@@ -125,8 +129,8 @@
 
         using var context = DbFactory.CreateDbContext();
         fundraiser = await context.Fundraiser
-            .Include(e => e.Images.OrderBy(i => i.Index))
-            .Include(e => e.CreatedUser)
+            .Include(f => f.Images.OrderBy(i => i.Index))
+            .Include(f => f.CreatedUser)
             .FirstOrDefaultAsync(m => m.Id == Id);
 
         if (fundraiser is null)
@@ -149,7 +153,21 @@
     public async Task DeleteFundraiser()
     {
         using var context = DbFactory.CreateDbContext();
-        context.Fundraiser.Remove(fundraiser!);
+        var delete = await context.Fundraiser
+            .Include(f => f.IndividualFundraiserRegistrations)
+            .Include(f => f.TeamFundraiserRegistrations)
+            .FirstOrDefaultAsync(m => m.Id == Id);
+
+        if (delete is null)
+        {
+            NavigationManager.NavigateTo("notfound");
+        }
+
+        context.IndividualFundraiserParticipationRegistration.RemoveRange(delete.IndividualFundraiserRegistrations);
+        context.TeamFundraiserParticipationRegistration.RemoveRange(delete.TeamFundraiserRegistrations);
+
+        context.Fundraiser.Remove(delete);
+
         await context.SaveChangesAsync();
         NavigationManager.NavigateTo("/fundraisers");
     }
