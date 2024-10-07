@@ -2,6 +2,11 @@
 @using Microsoft.AspNetCore.Authorization
 @using Microsoft.AspNetCore.Identity
 
+@implements IDisposable
+
+@inject NavigationManager NavigationManager
+
+
 
 <div class="page">
 
@@ -12,18 +17,28 @@
                 <a class="navbar-brand" asp-area="" asp-page="/Home">Bits and Bots</a>
 
                 <div class="profile">
-
-
-                    <NavLink script="border-right: 3px solid #FB5454;" class="nav-link border-right2" href="/account/login" Match="NavLinkMatch.All">
-                        <span class="nav-text" aria-hidden="true"></span>
-                        <p class="nav-text-2">log in</p>
-                    </NavLink>
-                    <NavLink class="nav-link" href="/account/register" Match="NavLinkMatch.All">
-                        <span class="nav-text" aria-hidden="true"></span>
-                        <p class="nav-text-2">Register</p>
-                    </NavLink>
+                    <AuthorizeView>
+                        <Authorized>
+                            <div class="nav-item px-3">
+                                <NavLink class="nav-link" href="@(context.User.Identity?.Name + "/Profile")">
+                                    <span class="bi bi-person-fill-nav-menu" aria-hidden="true"></span> @context.User.Identity?.Name
+                                </NavLink>
+                            </div>
+                        </Authorized>
+                        <NotAuthorized>
+                            <NavLink script="border-right: 3px solid #FB5454;" class="nav-link border-right2" href="/account/login" Match="NavLinkMatch.All">
+                                <span class="nav-text" aria-hidden="true"></span>
+                                <p class="nav-text-2">log in</p>
+                            </NavLink>
+                            <NavLink class="nav-link" href="/account/register" Match="NavLinkMatch.All">
+                                <span class="nav-text" aria-hidden="true"></span>
+                                <p class="nav-text-2">Register</p>
+                            </NavLink>
+                        </NotAuthorized>
+                    </AuthorizeView>
                 </div>
             </div>
+
         
             <nav class="navbar navbar-expand border-bottom">
                 <div style="width: 100%;" class="container">
@@ -90,3 +105,23 @@
 </div>
 
 
+@code {
+    private string? currentUrl;
+
+    protected override void OnInitialized()
+    {
+        currentUrl = NavigationManager.ToBaseRelativePath(NavigationManager.Uri);
+        NavigationManager.LocationChanged += OnLocationChanged;
+    }
+
+    private void OnLocationChanged(object? sender, LocationChangedEventArgs e)
+    {
+        currentUrl = NavigationManager.ToBaseRelativePath(e.Location);
+        StateHasChanged();
+    }
+
+    public void Dispose()
+    {
+        NavigationManager.LocationChanged -= OnLocationChanged;
+    }
+}
