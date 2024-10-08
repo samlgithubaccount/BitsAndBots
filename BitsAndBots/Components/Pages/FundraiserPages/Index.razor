@@ -7,45 +7,85 @@
 @inject IDbContextFactory<BitsAndBots.Data.ApplicationDbContext> DbFactory
 @rendermode InteractiveServer
 
-
 <PageTitle>Fundraisers</PageTitle>
+
 <article class="border-bottom box-shadow">
-    <h1>Fundraisers</h1>
+    <h1 class="page-title">Fundraisers</h1>
+</article>
+
+<article class="container-fluid">
+    <div class="row">
+        <div class="col-12 sidebar-sm">
+            <form class="in-sidebar" @onsubmit="GetFundraisers">
+                <div style="margin:3vh;" class="border-bottom" />
+                <InputText class="search-bar" @bind-Value="SearchQuery" placeholder="Search for a fundraiser..." />
+                <button class="search-button btn btn-warning">Search</button>
+                <div style="margin:3vh;" class="border-bottom" />
+                <label class="search-label" for="sort-by">Sort by</label>
+                <select class="search-sort" @bind="SortBy" @bind:after="GetFundraisers">
+                    @foreach (var sortOption in FundraiserSortOptions.GetAll())
+                    {
+                        <option value="@sortOption.DisplayName">@sortOption.DisplayName</option>
+                    }
+                </select>
+                <div style="margin:3vh;" class="border-bottom" />
+            </form>
+        </div>
+    </div>
+    <div class="row">
+
+        <div class="col-lg-3 col-md-0 sidebar">
+            <form class="in-sidebar" @onsubmit="GetFundraisers">
+                <div style="margin:3vh;" class="border-bottom" />
+                <InputText class="search-bar" @bind-Value="SearchQuery" placeholder="Search for a fundraiser..." />
+                <button class="search-button btn btn-warning">Search</button>
+
+                <div style="margin:3vh;" class="border-bottom" />
+                <label class="search-label" for="sort-by">Sort by</label>
+                <select class="search-sort" @bind="SortBy" @bind:after="GetFundraisers">
+                    @foreach (var sortOption in FundraiserSortOptions.GetAll())
+                    {
+                        <option value="@sortOption.DisplayName">@sortOption.DisplayName</option>
+                    }
+                </select>
+
+            </form>
+        </div>
+
+        <div class="col-lg-9 col-md-12 scrollbox">
+            @if (!Fundraisers.Any())
+            {
+            }
+            else
+            {
+                foreach (var e in Fundraisers)
+                {
+                    <div class="product-info">
+                        <a href="@($"fundraisers/details?id={e.Id}")">
+                            <img src="data:image;base64,@System.Convert.ToBase64String(e.Images.First().ImageData)" />
+                            <div class="name">@e.Title</div>
+                            <div class="date">@e.StartTime.ToString("yyyy-MM-dd HH:mm") - @e.EndTime.ToString("yyyy-MM-dd HH:mm")</div>
+                            
+                            @if (DateTime.Now >= e.StartTime && DateTime.Now < e.EndTime)
+                            {
+                                <span class="badge bg-success">In Progress</span>
+                            }
+                            else if (DateTime.Now < e.StartTime)
+                            {
+                                <span class="badge bg-warning">Upcoming</span>
+                            }
+                        </a>
+                    </div>
+                }
+            }
+        </div>
+    </div>
 </article>
 
 
-<form @onsubmit="GetFundraisers">
-    <InputText @bind-Value="SearchQuery" placeholder="Search for a fundraiser..." />
-    <button class="btn btn-primary">Search</button>
-    <label for="sort-by">Sort by</label>
-    <select @bind="SortBy" @bind:after="GetFundraisers" >
-        @foreach (var sortOption in FundraiserSortOptions.GetAll())
-		{
-			<option value="@sortOption.DisplayName">@sortOption.DisplayName</option>
-		}
-    </select>
-</form>
 
-@if (!Fundraisers.Any()) {
-} else {
-    foreach (var e in Fundraisers) {
-        <div>
-            <a href="@($"fundraisers/details?id={e.Id}")">
-                <img src="data:image;base64,@System.Convert.ToBase64String(e.Images.First().ImageData)" />
-                @e.Title
-                @e.StartTime.ToString("yyyy-MM-dd HH:mm") - @e.EndTime.ToString("yyyy-MM-dd HH:mm")
-                @if (DateTime.Now >= e.StartTime && DateTime.Now < e.EndTime)
-                {
-                    <span class="badge bg-success">In Progress</span>
-                }
-                else if (DateTime.Now < e.StartTime)
-                {
-                    <span class="badge bg-warning">Upcoming</span>
-                }
-            </a>
-        </div>
-    }
-}
+
+
 
 
 <div>

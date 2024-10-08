@@ -1,8 +1,4 @@
-@font-face {
-    font-family: gills-bold;
-    src: url(fonts/gill-sans-ultra-bold.ttf);
-    font-weight: bold;
-}
+
 
 .page {
     position: relative;
@@ -19,7 +15,7 @@ a.navbar-brand {
     word-break: break-all;
     display: contents;
     color: #0f454a;
-    font: bold 2vh 'gills-bold';
+    font: 4vh 'tondu';
     margin-bottom: 10vh;
     height: 30vh;
 }
@@ -33,14 +29,14 @@ a.navbar-brand {
 
 
 p.nav-text {
-    font: 2.5vh arial;
+    font: 20px 'ltsaeada';
     color: #F3E1D8;
     text-align: center;
     margin: auto;
 }
 
 a.nav-link.active {
-    font: 2.5vh arial;
+    font: 20px 'ltsaeada';
     color: black;
     text-align: center;
     margin: auto;
@@ -66,26 +62,24 @@ p.nav-text-2 {
 }
 
 .profile {
+    display: flex;
     float: right;
-    font: 3vh arial;
+    font: 3vh 'ltsaeada';
     color: #0f454a;
     margin: 1vw;
 }
+
 
 a {
     color: #dd6236;
     text-decoration: none;
 }
 
-.btn-primary {
-    color: #fff;
-    background-color: #1b6ec2;
-}
 
 .nav-item {
     padding-left: 2vw;
     padding-right: 2vw;
-    font: 1.5vw arial;
+    font: 1.5vw 'ltsaeada';
     color: #0f454a;
 }
 
@@ -146,10 +140,16 @@ button.accept-policy {
     }
 
 @media (max-width: 540px) {
+    
+    p.nav-text {
+        font: 10px arial;
+    }
+}
+
+@media (max-width: 680px) {
+
     a.navbar-brand {
         display: none;
     }
-    p.nav-text {
-        font: 1.5vh arial;
-    }
 }
+

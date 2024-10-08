@@ -21,11 +21,11 @@
             <form class="in-sidebar" @onsubmit="GetProducts">
                 <div style="margin:3vh;" class="border-bottom" />
                 <InputText class="search-bar" @bind-Value="SearchQuery" placeholder="Search for a product..." />
-                <button class="search-button btn btn-primary">Search</button>
+                <button class="search-button btn btn-warning">Search</button>
 
                 <div style="margin:3vh;" class="border-bottom" />
                 <label class="search-label" for="sort-by">Sort by</label>
-                <select class="search-sort" @bind="SortBy" id="sort-by">
+                <select class="search-sort" @bind="SortBy" @bind:after="GetProducts" id="sort-by">
                     @foreach (var sortOption in ProductSortOptions.GetAll())
                     {
                         <option value="@sortOption.DisplayName">@sortOption.DisplayName</option>
@@ -41,11 +41,11 @@
             <form class="in-sidebar" @onsubmit="GetProducts">
                 <div style="margin:3vh;" class="border-bottom" />
                 <InputText class="search-bar" @bind-Value="SearchQuery" placeholder="Search for a product..." />
-                <button class="search-button btn btn-primary">Search</button>
+                <button class="search-button btn btn-warning">Search</button>
 
                 <div style="margin:3vh;" class="border-bottom" />
                 <label class="search-label" for="sort-by">Sort by</label>
-                <select class="search-sort" @bind="SortBy" id="sort-by">
+                <select class="search-sort" @bind="SortBy" @bind:after="GetProducts" id="sort-by">
                     @foreach (var sortOption in ProductSortOptions.GetAll())
                     {
                         <option value="@sortOption.DisplayName">@sortOption.DisplayName</option>
@@ -104,6 +104,9 @@
         var query = context.Product
             .Include(product => product.Images.OrderBy(i => i.Index))
             .Where(p => p.Title.Contains(SearchQuery));
+            //.Where(p => p.Tags.ToList().Any(tag => tag.Equals(SearchQuery)));
+        //.Include(product => product.Tags)
+            //.Where(p => p.Title.Contains(SearchQuery)/*  || p.Tags.AsEnumerable().Contains(SearchQuery, StringComparer.OrdinalIgnoreCase) */);
 
         query = sortOption.SortDirection == Models.SortDirection.Ascending
             ? query.OrderBy(sortOption.KeySelector)

@@ -3,6 +3,7 @@ using BitsAndBots.Components.Account;
 using BitsAndBots.Configuration;
 using BitsAndBots.Data;
 using BitsAndBots.Service;
+using BitsAndBots.Validators;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -115,18 +116,33 @@ using (var scope = app.Services.CreateScope())
                 continue;
             }
 
-            var stringLengthAttribute = new StringLengthAttribute(100)
+            if (!new UsernameCharacterValidator().IsValid(admin.UserName))
+            {
+                logger.LogWarning("Administrator not setup. The Username may only contain alphanumeric characters, underscores and hyphens.");
+                continue;
+            }
+
+            var usernameStringLengthAttribute = new StringLengthAttribute(30)
+            {
+                MinimumLength = 1,
+                ErrorMessage = "The {0} must be at least {2} and at max {1} characters long."
+            };
+            if (!usernameStringLengthAttribute.IsValid(admin.UserName))
+            {
+                logger.LogWarning($"Administrator not setup. {usernameStringLengthAttribute.FormatErrorMessage("Username")}");
+                continue;
+            }
+
+            var passwordStringLengthAttribute = new StringLengthAttribute(100)
             {
                 MinimumLength = 6,
                 ErrorMessage = "The {0} must be at least {2} and at max {1} characters long."
             };
-            if (!stringLengthAttribute.IsValid(admin.Password))
+            if (!passwordStringLengthAttribute.IsValid(admin.Password))
             {
-                logger.LogWarning($"Administrator not setup. {stringLengthAttribute.FormatErrorMessage("Password")}");
+                logger.LogWarning($"Administrator not setup. {passwordStringLengthAttribute.FormatErrorMessage("Password")}");
                 continue;
             }
-
-            //TODO: Any username validations required?
 
             var existingUser = await userManager.FindByEmailAsync(admin.Email);
             if (existingUser != null)
@@ -135,17 +151,15 @@ using (var scope = app.Services.CreateScope())
                 continue;
             }
 
-            //TODO: If username added
-            //existingUser = await userManager.FindByNameAsync(admin.UserName);
-            //if (existingUser != null)
-            //{
-            //    logger.LogWarning($"Administrator not setup. An administrator with the Username {admin.UserName} already exists.");
-            //    continue;
-            //}
+            existingUser = await userManager.FindByNameAsync(admin.UserName);
+            if (existingUser != null)
+            {
+                logger.LogWarning($"Administrator not setup. An administrator with the Username {admin.UserName} already exists.");
+                continue;
+            }
 
             var user = Activator.CreateInstance<ApplicationUser>();
-            //TODO: If username changed
-            await userStore.SetUserNameAsync(user, admin.Email, CancellationToken.None);
+            await userStore.SetUserNameAsync(user, admin.UserName, CancellationToken.None);
             await ((IUserEmailStore<ApplicationUser>)userStore).SetEmailAsync(user, admin.Email, CancellationToken.None);
             var createUserResult = await userManager.CreateAsync(user, admin.Password);
 

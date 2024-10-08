@@ -12,10 +12,10 @@ namespace BitsAndBots.Models
         [Required]
         public string Description { get; set; }
         [Required]
-        [FutureDateTime(ErrorMessage = "Start must be in the future.")]
+        [FutureDateTimeValidator(ErrorMessage = "Start must be in the future.")]
         public DateTime StartTime { get; set; } = DateTime.Now.AddHours(1);
         [Required]
-        [FutureDateTime(ErrorMessage = "Ends must be in the future.")]
+        [FutureDateTimeValidator(ErrorMessage = "Ends must be in the future.")]
         [EndTimeValidator("StartTime")]
         public DateTime EndTime { get; set; } = DateTime.Now.AddHours(2);
         public string? FundraiserLink { get; set; }

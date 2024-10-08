@@ -41,14 +41,15 @@
                     </div>
                 </div>
             }
-            <EditForm method="post" Model="@(IsTeamRegistration ? TeamFundraiserParticipationRegistration : IndividualFundraiserParticipationRegistration)" OnValidSubmit="AddFundraiserParticipationRegistration" FormName="create" Enhance>
-                <DataAnnotationsValidator />
-                <ValidationSummary class="text-danger" />
-                @if (IsTeamRegistration) {
+            @if (IsTeamRegistration)
+            {
+                <EditForm method="post" Model="TeamFundraiserParticipationRegistration" OnValidSubmit="AddFundraiserParticipationRegistration" FormName="create" Enhance>
+                    <DataAnnotationsValidator />
+                    <ValidationSummary class="text-danger" />
                     <div class="mb-3">
-                        <label for="teamname" class="form-label">TeamName:</label> 
-                        <InputText id="teamname" @bind-Value="TeamFundraiserParticipationRegistration.TeamName" class="form-control" /> 
-                        <ValidationMessage For="() => TeamFundraiserParticipationRegistration.TeamName" class="text-danger" /> 
+                        <label for="teamname" class="form-label">TeamName:</label>
+                        <InputText id="teamname" @bind-Value="TeamFundraiserParticipationRegistration.TeamName" class="form-control" />
+                        <ValidationMessage For="() => TeamFundraiserParticipationRegistration.TeamName" class="text-danger" />
                     </div>
                     <div class="mb-3">
                         <label for="team-member" class="form-label">Team Members:</label>
@@ -68,22 +69,39 @@
                             }
                         </ul>
                     </div>
-                }
-                @if (Fundraiser.SupportsParticipantLinks) {
-                    <div class="mb-3">
-                        <label for="participantlink" class="form-label">ParticipantLink:</label> 
-                        <InputText id="participantlink" @bind-Value="TeamFundraiserParticipationRegistration.ParticipantLink" class="form-control" /> 
-                        <ValidationMessage For="() => TeamFundraiserParticipationRegistration.ParticipantLink" class="text-danger" /> 
-                    </div>
-                }
-                <button type="submit" class="btn btn-primary">Create</button>
-            </EditForm>
+                    @if (Fundraiser.SupportsParticipantLinks)
+                    {
+                        <div class="mb-3">
+                            <label for="participantlink" class="form-label">ParticipantLink:</label>
+                            <InputText id="participantlink" @bind-Value="ParticipantLink" class="form-control" />
+                            <ValidationMessage For="() => ParticipantLink" class="text-danger" />
+                        </div>
+                    }
+                    <button type="submit" class="btn btn-primary">Register</button>
+                </EditForm>
+            } else
+            {
+                <EditForm method="post" Model="IndividualFundraiserParticipationRegistration" OnValidSubmit="AddFundraiserParticipationRegistration" FormName="create" Enhance>
+                    <DataAnnotationsValidator />
+                    <ValidationSummary class="text-danger" />
+                    @if (Fundraiser.SupportsParticipantLinks)
+                    {
+                        <div class="mb-3">
+                            <label for="participantlink" class="form-label">Participant Link:</label>
+                            <InputText id="participantlink" @bind-Value="ParticipantLink" class="form-control" />
+                            <ValidationMessage For="() => ParticipantLink" class="text-danger" />
+                        </div>
+                    }
+                    <button type="submit" class="btn btn-primary">Register</button>
+                </EditForm>
+            }
+            
         }
     </div>
 </div>
 
 <div>
-    <a href="/teamfundraiserparticipationregistrations">Back to List</a>
+    <a href="@($"/fundraisers/details?id={FundraiserId}")">Back to List</a>
 </div>
 
 @code {
@@ -93,6 +111,7 @@
     private TeamFundraiserParticipationRegistration TeamFundraiserParticipationRegistration { get; set; } = new();
     [SupplyParameterFromForm]
     private IndividualFundraiserParticipationRegistration IndividualFundraiserParticipationRegistration { get; set; } = new();
+    private string ParticipantLink { get; set; }
 
     public ApplicationUser CurrentUser { get; set; }
     private Fundraiser Fundraiser;
@@ -165,6 +184,7 @@
         {
             TeamFundraiserParticipationRegistration.FundraiserId = FundraiserId;
             TeamFundraiserParticipationRegistration.UserId = CurrentUser.Id;
+            TeamFundraiserParticipationRegistration.ParticipantLink = ParticipantLink;
 
             foreach (var teamMember in TeamFundraiserParticipationRegistration.TeamMembers)
             {
@@ -177,11 +197,12 @@
         {
             IndividualFundraiserParticipationRegistration.FundraiserId = FundraiserId;
             IndividualFundraiserParticipationRegistration.UserId = CurrentUser.Id;
+            IndividualFundraiserParticipationRegistration.ParticipantLink = ParticipantLink;
             context.IndividualFundraiserParticipationRegistration.Add(IndividualFundraiserParticipationRegistration);
         }
 
         await context.SaveChangesAsync();
-        NavigationManager.NavigateTo("/teamfundraiserparticipationregistrations");
+        NavigationManager.NavigateTo($"/fundraisers/details?id={FundraiserId}");
     }
 
     private void RemoveUser(ApplicationUser user)
