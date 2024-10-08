@@ -10,13 +10,14 @@
 .create {
     display: inline-block;
     float: right;
-    font: 2vh arial;
+    font: 2vh 'ltsaeada';
     color: #0f454a;
 }
 
 .product-info {
     display: inline-block;
-    border: 3px solid #cccccc;
+    border: 0px solid #cccccc;
+    box-shadow: 0 .25rem .75rem grey;
     border-radius: 5px;
     background-color: #f5f4f2;
     width: 250px;
@@ -28,8 +29,15 @@
 }
 
 .name {
-    font: 30px arial;
+    font: 30px 'ltsaeada';
     color: black;
+    text-decoration: underline;
+    text-decoration-color: #f5f4f2;
+}
+
+.date {
+    font: 13px 'ltsaeada';
+    color: grey;
     text-decoration: underline;
     text-decoration-color: #f5f4f2;
 }

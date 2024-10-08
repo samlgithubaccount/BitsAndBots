@@ -35,6 +35,13 @@
     text-decoration-color: #f5f4f2;
 }
 
+.date {
+    font: 13px 'ltsaeada';
+    color: grey;
+    text-decoration: underline;
+    text-decoration-color: #f5f4f2;
+}
+
 .search-bar {
     width: 10vw;
     border-radius: 3px;

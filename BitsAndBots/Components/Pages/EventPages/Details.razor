@@ -14,59 +14,109 @@
 
 <PageTitle>Details</PageTitle>
 
-<h1>Details</h1>
 
-<a href="@($"/events")">Back</a>
+
 
 <div>
-    <h4>Event</h4>
-    <hr />
     @if (eventEntity is null)
     {
         <p><em>Loading...</em></p>
     }
-    else {
-        <dl class="row">
-            <dt class="col-sm-2">Title</dt>
-            <dd class="col-sm-10">@eventEntity.Title</dd>
-            <dt class="col-sm-2">Description</dt>
-            <dd class="col-sm-10">@eventEntity.Description</dd>
-            <dt class="col-sm-2">Start</dt>
-            <dd class="col-sm-10">@eventEntity.StartTime</dd>
-            <dt class="col-sm-2">End</dt>
-            <dd class="col-sm-10">@eventEntity.EndTime</dd>
-            <dt class="col-sm-2">Ticket Price</dt>
-            <dd class="col-sm-10">@eventEntity.TicketPrice</dd>
-            <dt class="col-sm-2">Ticket Link</dt>
-            <dd class="col-sm-10">@eventEntity.TicketLink</dd>
-            <dt class="col-sm-2">Location</dt>
-            <dd class="col-sm-10">@eventEntity.Location</dd>
-            <dt class="col-sm-2">CreatedBy</dt>
-            <dd class="col-sm-10">@eventEntity.CreatedUser.Email</dd>
-            <dt class="col-sm-2">Created</dt>
-            <dd class="col-sm-10">@eventEntity.CreatedTimestamp</dd>
-            <dt class="col-sm-2">Last Updated</dt>
-            <dd class="col-sm-10">@eventEntity.LastUpdatedTimestamp</dd>
-            <dt class="col-sm-2">Image</dt>
-            <dd class="col-sm-10">
-                @foreach(var image in eventEntity.Images)
-                {
-                    <img src="data:image;base64,@System.Convert.ToBase64String(image.ImageData)" />
-                }
-            </dd>
-        </dl>
+    else
+    {
+        <div class="page row">
+            <div class="title-items">
+                <div class="title">@eventEntity.Title</div>
 
-        @if (CanCurrentUserModifyEvent)
-        {
-            <div>
-                <a href="@($"/events/edit?id={eventEntity.Id}")">Edit</a>
-                <EditForm method="post" Model="eventEntity" OnValidSubmit="DeleteEvent" FormName="delete" Enhance>
-                    <button type="submit" class="btn btn-danger" disabled="@(eventEntity is null)">Delete</button>
-                </EditForm>
             </div>
-        }
+
+            <div class="col-md-6 col-sm-12">
+                <div class="images">
+
+                    <div id="carousel" class="carousel slide" data-bs-ride="carousel">
+                        <div class="carousel-indicators">
+                            <button type="button" data-bs-target="#carousel" data-bs-slide-to="0" class="active" aria-current="true" aria-label="Slide 1"></button>
+                            @for (int i = 1; i < eventEntity.Images.ToArray().Length; i++)
+                            {
+                                <button type="button" data-bs-target="#carousel" data-bs-slide-to="@i" aria-label="Slide @i"></button>
+                            }
+                        </div>
+                        <div class="carousel-inner">
+                            <div class="carousel-item active">
+                                <img src="data:image;base64,@System.Convert.ToBase64String(eventEntity.Images.ToArray()[0].ImageData)" class="d-block w-100" alt="...">
+                            </div>
+                            @for (int i = 1; i < eventEntity.Images.ToArray().Length; i++)
+                            {
+                                <div class="carousel-item">
+                                    <img src="data:image;base64,@System.Convert.ToBase64String(eventEntity.Images.ToArray()[i].ImageData)" class="d-block w-100" alt="..." />
+                                </div>
+                            }
+
+                        </div>
+
+                    </div>
+
+                    <button class="carousel-control-prev" type="button" data-bs-target="#carousel" data-bs-slide="prev">
+                        <span class="carousel-control-prev-icon cara" aria-hidden="true"></span>
+                        <span class="visually-hidden">Previous</span>
+                    </button>
+                    <button class="carousel-control-next" type="button" data-bs-target="#carousel" data-bs-slide="next">
+                        <span class="carousel-control-next-icon cara" aria-hidden="true"></span>
+                        <span class="visually-hidden">Next</span>
+                    </button>
+                </div>
+            </div>
+
+            <div class="detail-items col-md-6 col-sm-12">
+                <div class="desc-title">Description</div>
+                <div class="description">@eventEntity.Description</div>
+                <div style="margin:3vh;" class="border-bottom" />
+                <div class="row">
+                    <div class="desc-title col-6">Start</div>
+                    <div class="desc-title col-6">End</div>
+                    <div class="description col-6">@eventEntity.StartTime</div>
+                    <div class="description col-6">@eventEntity.EndTime</div>
+                </div>
+
+                <div style="margin:3vh;" class="border-bottom" />
+
+                <div class="row">
+                    <div class="desc-title col-6">Ticket Price</div>
+                    <div class="desc-title col-6">Ticket Link</div>
+                    <div class="description col-6">@eventEntity.TicketPrice</div>
+                    <div class="description col-6">@eventEntity.TicketLink</div>
+                </div>
+                
+                <div style="margin:3vh;" class="border-bottom" />
+                <div class="desc-title">Location</div>
+                <div class="description">@eventEntity.Location</div>
+                <div style="margin:3vh;" class="border-bottom" />
+                <div class="creator">CreatedBy @eventEntity.CreatedUser.Email</div>
+                <div style="margin:3vh;" class="border-bottom" />
+                <div class="col-sm-2">Created</div>
+                <div class="col-sm-10">@eventEntity.CreatedTimestamp</div>
+                <div class="col-sm-2">Last Updated</div>
+                <div class="col-sm-10">@eventEntity.LastUpdatedTimestamp</div>
+            </div>
+
+
+
+
+            @if (CanCurrentUserModifyEvent)
+            {
+                <div>
+                    <a href="@($"/events/edit?id={eventEntity.Id}")">Edit</a>
+                    <EditForm method="post" Model="eventEntity" OnValidSubmit="DeleteEvent" FormName="delete" Enhance>
+                        <button type="submit" class="btn btn-danger" disabled="@(eventEntity is null)">Delete</button>
+                    </EditForm>
+                </div>
+            }
+            <div style="position:absolute;bottom:0;margin-top:30vh"></div>
+        </div>
+
     }
 </div>
+
 
 @code {
     Event? eventEntity;

@@ -28,6 +28,7 @@
 else
 {
     <div class="row">
+        <div class="col-md-4 form-deco"></div>
         <div class="col-md-4">
             <EditForm EditContext="@EditContext" method="post" OnValidSubmit="UpdateFundraiser" OnInvalidSubmit="ClearErrors" FormName="edit" Enhance>
                 <DataAnnotationsValidator />
@@ -43,16 +44,19 @@ else
                     <InputTextArea id="description" @bind-Value="Fundraiser.Description" class="form-control" />
                     <ValidationMessage For="() => Fundraiser.Description" class="text-danger" />
                 </div>
-                <div class="mb-3">
-                    <label for="start-time" class="form-label">Start:</label>
-                    <InputDate Type="InputDateType.DateTimeLocal" min="@DateTime.Now.ToString("yyyy-MM-ddTHH:mm")" id="start-time" @bind-Value="Fundraiser.StartTime" class="form-control" />
-                    <ValidationMessage For="() => Fundraiser.StartTime" class="text-danger" />
+                <div class="row">
+                    <div class="mb-3 col-6">
+                        <label for="start-time" class="form-label">Start:</label>
+                        <InputDate Type="InputDateType.DateTimeLocal" min="@DateTime.Now.ToString("yyyy-MM-ddTHH:mm")" id="start-time" @bind-Value="Fundraiser.StartTime" class="form-control" />
+                        <ValidationMessage For="() => Fundraiser.StartTime" class="text-danger" />
+                    </div>
+                    <div class="mb-3 col-6">
+                        <label for="end-time" class="form-label">End:</label>
+                        <InputDate Type="InputDateType.DateTimeLocal" min="@Fundraiser.StartTime.ToString("yyyy-MM-ddTHH:mm")" id="end-time" @bind-Value="Fundraiser.EndTime" class="form-control" />
+                        <ValidationMessage For="() => Fundraiser.EndTime" class="text-danger" />
+                    </div>
                 </div>
-                <div class="mb-3">
-                    <label for="end-time" class="form-label">End:</label>
-                    <InputDate Type="InputDateType.DateTimeLocal" min="@Fundraiser.StartTime.ToString("yyyy-MM-ddTHH:mm")" id="end-time" @bind-Value="Fundraiser.EndTime" class="form-control" />
-                    <ValidationMessage For="() => Fundraiser.EndTime" class="text-danger" />
-                </div>
+
                 <div class="mb-3">
                     <label for="fundraiser-link" class="form-label">Fundraiser Link:</label>
                     <InputText id="fundraiser-link" @bind-Value="Fundraiser.FundraiserLink" class="form-control" />
@@ -68,18 +72,16 @@ else
                     <InputTextArea id="location" @bind-Value="Fundraiser.Location" class="form-control" />
                     <ValidationMessage For="() => Fundraiser.Location" class="text-danger" />
                 </div>
-                <div class="mb-3">
-                    <ImagePicker TImage="FundraiserImage" EditContext="@EditContext" ValidationMessageStore="@ValidationMessageStore" Images="@Fundraiser.Images" Field="@(() => Fundraiser.Images)" />
-                </div>
+                <ImagePicker TImage="FundraiserImage" EditContext="@EditContext" ValidationMessageStore="@ValidationMessageStore" Images="@Fundraiser.Images" Field="@(() => Fundraiser.Images)" />
                 <button type="submit" class="btn btn-primary">Save</button>
             </EditForm>
         </div>
+        <div class="col-md-4 form-deco"></div>
     </div>
+
+    <div style="margin-bottom:10vh;"></div>
 }
 
-<div>
-    <a href="/fundraisers">Back to List</a>
-</div>
 
 @code {
     [SupplyParameterFromQuery]
