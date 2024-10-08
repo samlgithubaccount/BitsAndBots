@@ -58,9 +58,45 @@ else
                 </div>
 
                 <div class="mb-3">
+                    <label for="organiser" class="form-label">Organiser:</label>
+                    <InputText id="organiser" @bind-Value="Fundraiser.Organiser" class="form-control" />
+                    <ValidationMessage For="() => Fundraiser.Organiser" class="text-danger" />
+                </div>
+
+                <div class="mb-3">
                     <label for="fundraiser-link" class="form-label">Fundraiser Link:</label>
                     <InputText id="fundraiser-link" @bind-Value="Fundraiser.FundraiserLink" class="form-control" />
                     <ValidationMessage For="() => Fundraiser.FundraiserLink" class="text-danger" />
+                </div>
+                <!-- TODO: style text as grey -->
+                <div class="mb-3">
+                    <label class="form-label">Supported Registration Types:</label>
+                    <ValidationMessage For="() => Fundraiser.RegistrationTypeSelected" class="text-danger" />
+
+                    <div class="row">
+                        <div class="form-group col-6">
+                            <label>
+                                <input type="checkbox" id="supports-individual-registration" checked="@Fundraiser.SupportsIndividualRegistration" disabled />
+                                Individual
+                            </label>
+                        </div>
+                        <div class="form-group col-6">
+                            <label>
+                                <input type="checkbox" id="supports-team-registration" checked="@Fundraiser.SupportsTeamRegistration" disabled />
+                                Team
+                            </label>
+                        </div>
+                    </div>
+                </div>
+                <!-- TODO: style text as grey -->
+                <div class="mb-3">
+                    <div class="form-group">
+                        <label>
+                            Allow Participant Links:
+                            <input type="checkbox" id="supports-participant-links" checked="@Fundraiser.SupportsParticipantLinks" disabled />
+                        </label>
+                    </div>
+                    <ValidationMessage For="() => Fundraiser.SupportsParticipantLinks" class="text-danger" />
                 </div>
                 <div class="mb-3">
                     <label for="tags" class="form-label">Tags:</label>
@@ -107,7 +143,7 @@ else
             .Include(p => p.CreatedUser)
             .FirstOrDefaultAsync(m => m.Id == Id);
 
-        if (Fundraiser is null)
+        if (Fundraiser is null || !(await UserCreatedFundraiserOrIsAdministrator()))
         {
             NavigationManager.NavigateTo("notfound");
         }
@@ -188,5 +224,12 @@ else
                 Fundraiser.EndTime = Fundraiser.StartTime.AddHours(1);
             }
         }
+    }
+
+    public async Task<bool> UserCreatedFundraiserOrIsAdministrator()
+    {
+        var currentUser = await UserService.GetCurrentUser();
+        var currentUserRoles = await UserService.GetCurrentUserRoles();
+        return currentUser != null && (Fundraiser.CreatedUserId == currentUser.Id || currentUserRoles.Contains("Administrator"));
     }
 }

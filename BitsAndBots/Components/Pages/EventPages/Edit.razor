@@ -59,6 +59,12 @@ else
                 </div>
 
                 <div class="mb-3">
+                    <label for="organiser" class="form-label">Organiser:</label>
+                    <InputText id="organiser" @bind-Value="Event.Organiser" class="form-control" />
+                    <ValidationMessage For="() => Event.Organiser" class="text-danger" />
+                </div>
+
+                <div class="mb-3">
                     <label for="ticket-price" class="form-label">Ticket Price:</label>
                     <InputNumber id="ticket-price" @bind-Value="Event.TicketPrice" class="form-control" />
                     <ValidationMessage For="() => Event.TicketPrice" class="text-danger" />
@@ -114,7 +120,7 @@ else
             .Include(p => p.CreatedUser)
             .FirstOrDefaultAsync(m => m.Id == Id);
 
-        if (Event is null)
+        if (Event is null || !(await UserCreatedEventOrIsAdministrator()))
         {
             NavigationManager.NavigateTo("notfound");
         }
@@ -195,5 +201,12 @@ else
                 Event.EndTime = Event.StartTime.AddHours(1);
             }
         }
+    }
+
+    public async Task<bool> UserCreatedEventOrIsAdministrator()
+    {
+        var currentUser = await UserService.GetCurrentUser();
+        var currentUserRoles = await UserService.GetCurrentUserRoles();
+        return currentUser != null && (Event.CreatedUserId == currentUser.Id || currentUserRoles.Contains("Administrator"));
     }
 }

@@ -48,7 +48,13 @@
                     <ValidationMessage For="() => Event.EndTime" class="text-danger" />
                 </div>
             </div>
-            
+
+            <div class="mb-3">
+                <label for="organiser" class="form-label">Organiser:</label>
+                <InputText id="organiser" @bind-Value="Event.Organiser" class="form-control" />
+                <ValidationMessage For="() => Event.Organiser" class="text-danger" />
+            </div>
+
             <div class="mb-3">
                 <label for="ticket-price" class="form-label">Ticket Price:</label> 
                 <InputNumber id="ticket-price" @bind-Value="Event.TicketPrice" class="form-control" />

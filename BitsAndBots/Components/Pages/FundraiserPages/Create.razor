@@ -48,6 +48,12 @@
                     <ValidationMessage For="() => Fundraiser.EndTime" class="text-danger" />
                 </div>
             </div>
+
+            <div class="mb-3">
+                <label for="organiser" class="form-label">Organiser:</label>
+                <InputText id="organiser" @bind-Value="Fundraiser.Organiser" class="form-control" />
+                <ValidationMessage For="() => Fundraiser.Organiser" class="text-danger" />
+            </div>
             
             <div class="mb-3">
                 <label for="fundraiser-link" class="form-label">Fundraiser Link:</label>

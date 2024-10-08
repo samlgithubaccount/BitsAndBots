@@ -3,7 +3,6 @@ namespace BitsAndBots.Models
 {
     public class FundraiserSortOptions : ISortOptions<Fundraiser, object>
     {
-        //TODO: We need to sort by end time for running fundraisers
         private Dictionary<string, SortOption<Fundraiser, object>> SortOptions = new() {
             { "Title Ascending", new() { DisplayName = "Title Ascending", SortDirection = SortDirection.Ascending, KeySelector = p => p.Title } },
             { "Title Descending", new () { DisplayName = "Title Descending", SortDirection = SortDirection.Descending, KeySelector = p => p.Title } },

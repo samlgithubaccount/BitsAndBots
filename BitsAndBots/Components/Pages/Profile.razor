@@ -136,7 +136,10 @@ else
         }
 
         var currentUser = await UserService.GetCurrentUser();
-        IsCurrentUserProfile = currentUser.Id == user.Id;
+        if (currentUser != null)
+        {
+            IsCurrentUserProfile = currentUser.Id == user.Id;
+        }
 
         using var context = DbFactory.CreateDbContext();
 
@@ -151,12 +154,12 @@ else
         IndividualFundraiserRegistrations = await context.IndividualFundraiserParticipationRegistration
             .Include(r => r.Fundraiser)
             .ThenInclude(f => f.Images)
-            .Where(r => r.UserId == user.Id)
+            .Where(r => r.UserId == user.Id && r.Fundraiser.EndTime > DateTime.Now)
             .ToListAsync();
         TeamFundraiserRegistrations = await context.TeamFundraiserParticipationRegistration
             .Include(r => r.Fundraiser)
             .ThenInclude(f => f.Images)
-            .Where(r => r.UserId == user.Id || r.TeamMembers.Any(u => u.Id == user.Id))
+            .Where(r => (r.UserId == user.Id || r.TeamMembers.Any(u => u.Id == user.Id)) && r.Fundraiser.EndTime > DateTime.Now)
             .ToListAsync();
     }
 }

@@ -104,7 +104,7 @@ else
             .Include(p => p.CreatedUser)
             .FirstOrDefaultAsync(m => m.Id == Id);
 
-        if (Product is null)
+        if (Product is null || !(await UserCreatedProductOrIsAdministrator()))
         {
             NavigationManager.NavigateTo("notfound");
         }
@@ -173,5 +173,12 @@ else
     {
         get => string.Join(", ", Product.Tags);
         set => Product.Tags = value.Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries).Select(tag => tag.Trim()).ToList();
+    }
+
+    public async Task<bool> UserCreatedProductOrIsAdministrator()
+    {
+        var currentUser = await UserService.GetCurrentUser();
+        var currentUserRoles = await UserService.GetCurrentUserRoles();
+        return currentUser != null && (Product.CreatedUserId == currentUser.Id || currentUserRoles.Contains("Administrator"));
     }
 }

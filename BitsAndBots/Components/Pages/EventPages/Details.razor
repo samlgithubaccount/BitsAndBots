@@ -83,15 +83,15 @@
                 <div class="row">
                     <div class="desc-title col-6">Ticket Price</div>
                     <div class="desc-title col-6">Ticket Link</div>
-                    <div class="description col-6">@eventEntity.TicketPrice</div>
-                    <div class="description col-6">@eventEntity.TicketLink</div>
+                    <div class="description col-6">$@eventEntity.TicketPrice</div>
+                    <div class="description col-6"><a href="@eventEntity.TicketLink">@eventEntity.TicketLink</a></div>
                 </div>
                 
                 <div style="margin:3vh;" class="border-bottom" />
                 <div class="desc-title">Location</div>
                 <div class="description">@eventEntity.Location</div>
                 <div style="margin:3vh;" class="border-bottom" />
-                <div class="creator">CreatedBy @eventEntity.CreatedUser.Email</div>
+                <div class="creator">Created by <a href="@($"/{eventEntity.CreatedUser.UserName}/profile")">@eventEntity.CreatedUser.UserName</a></div>
                 <div style="margin:3vh;" class="border-bottom" />
                 <div class="col-sm-2">Created</div>
                 <div class="col-sm-10">@eventEntity.CreatedTimestamp</div>

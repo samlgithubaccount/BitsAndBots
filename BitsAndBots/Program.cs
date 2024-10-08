@@ -71,7 +71,6 @@ app.MapAdditionalIdentityEndpoints();
 
 var administrators = builder.Configuration.GetSection("Administrators").Get<List<AdministratorUser>>();
 
-//TODO: Make it easy to setup administrators via the appsettings.json file
 using (var scope = app.Services.CreateScope())
 {
     var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
