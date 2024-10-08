@@ -11,99 +11,139 @@
 @inject NavigationManager NavigationManager
 @inject UserService UserService
 
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.min.js"
+        integrity="sha384-BBtl+eGJRgqQAUMxJ7pMwbEyER4l1g+O15P+16Ep7Q9Q+zqX6gSbd85u4mG4QzX+"
+        crossorigin="anonymous"></script>
+
 @rendermode InteractiveServer
 
 <PageTitle>Details</PageTitle>
 
-<h1>Details</h1>
-
-<a href="@($"/fundraisers")">Back</a>
-
 <div>
-    <h4>Fundraiser</h4>
-    <hr />
     @if (fundraiser is null)
     {
         <p><em>Loading...</em></p>
     }
-    else {
-        <dl class="row">
-            <dt class="col-sm-2">Title</dt>
-            <dd class="col-sm-10">@fundraiser.Title</dd>
-            <dt class="col-sm-2">Description</dt>
-            <dd class="col-sm-10">@fundraiser.Description</dd>
-            <dt class="col-sm-2">Start</dt>
-            <dd class="col-sm-10">@fundraiser.StartTime</dd>
-            <dt class="col-sm-2">End</dt>
-            <dd class="col-sm-10">@fundraiser.EndTime</dd>
-            <dt class="col-sm-2">Fundraiser Link</dt>
-            <dd class="col-sm-10">@fundraiser.FundraiserLink</dd>
-            <dt class="col-sm-2">Location</dt>
-            <dd class="col-sm-10">@fundraiser.Location</dd>
-            <dt class="col-sm-2">CreatedBy</dt>
-            <dd class="col-sm-10">@fundraiser.CreatedUser.Email</dd>
-            <dt class="col-sm-2">Created</dt>
-            <dd class="col-sm-10">@fundraiser.CreatedTimestamp</dd>
-            <dt class="col-sm-2">Last Updated</dt>
-            <dd class="col-sm-10">@fundraiser.LastUpdatedTimestamp</dd>
-            <dt class="col-sm-2">Image</dt>
-            <dd class="col-sm-10">
-                @foreach(var image in fundraiser.Images)
-                {
-                    <img src="data:image;base64,@System.Convert.ToBase64String(image.ImageData)" />
-                }
-            </dd>
-        </dl>
-        
-        @if (fundraiser.SupportsIndividualRegistration)
-		{
-            <QuickGrid class="table" Items="individualFundraiserParticipationRegistrations">
-                <PropertyColumn Property="r => r.User.UserName" Title="Username" />
-                @if (fundraiser.SupportsParticipantLinks)
-                {
-                    <TemplateColumn Context="individualfundraiserparticipationregistration" Title="Participant Link">
-                        <a href="@individualfundraiserparticipationregistration.ParticipantLink">@individualfundraiserparticipationregistration.ParticipantLink</a>
-                    </TemplateColumn>
-                }
-            </QuickGrid>
-		}
+    else
+    {
+        <div class="page row">
+            <div class="title-items">
+                <div class="title">@fundraiser.Title</div>
 
-
-        @if (fundraiser.SupportsTeamRegistration) {
-            <QuickGrid class="table" Items="teamFundraiserParticipationRegistrations">
-                <PropertyColumn Property="r => r.User.UserName" Title="Username" />
-                <TemplateColumn Context="teamfundraiserparticipationregistration" Title="Team Members">
-                    <ul>
-                        @foreach (var teamMember in teamfundraiserparticipationregistration.TeamMembers)
-                        {
-                            <li>@teamMember.UserName</li>
-                        }
-                    </ul>
-                </TemplateColumn>
-                @if (fundraiser.SupportsParticipantLinks)
-                {
-                    <TemplateColumn Context="teamfundraiserparticipationregistration" Title="Participant Link">
-                        <a href="@teamfundraiserparticipationregistration.ParticipantLink">@teamfundraiserparticipationregistration.ParticipantLink</a>
-                    </TemplateColumn>
-                }
-            </QuickGrid>
-        }
-
-
-
-        @if (CanCurrentUserModifyFundraiser)
-        {
-            <div>
-                <a href="@($"/fundraisers/edit?id={fundraiser.Id}")">Edit</a>
-                <EditForm method="post" Model="fundraiser" OnValidSubmit="DeleteFundraiser" FormName="delete" Enhance>
-                    <button type="submit" class="btn btn-danger" disabled="@(fundraiser is null)">Delete</button>
-                </EditForm>
             </div>
-        }
 
-        <a href="@($"/teamfundraiserparticipationregistrations/create?fundraiserId={fundraiser.Id}")">Register</a>
+            <div class="col-md-6 col-sm-12">
+                <div class="images">
+
+                    <div id="carousel" class="carousel slide" data-bs-ride="carousel">
+                        <div class="carousel-indicators">
+                            <button type="button" data-bs-target="#carousel" data-bs-slide-to="0" class="active" aria-current="true" aria-label="Slide 1"></button>
+                            @for (int i = 1; i < fundraiser.Images.ToArray().Length; i++)
+                            {
+                                <button type="button" data-bs-target="#carousel" data-bs-slide-to="@i" aria-label="Slide @i"></button>
+                            }
+                        </div>
+                        <div class="carousel-inner">
+                            <div class="carousel-item active">
+                                <img src="data:image;base64,@System.Convert.ToBase64String(fundraiser.Images.ToArray()[0].ImageData)" class="d-block w-100" alt="...">
+                            </div>
+                            @for (int i = 1; i < fundraiser.Images.ToArray().Length; i++)
+                            {
+                                <div class="carousel-item">
+                                    <img src="data:image;base64,@System.Convert.ToBase64String(fundraiser.Images.ToArray()[i].ImageData)" class="d-block w-100" alt="..." />
+                                </div>
+                            }
+
+                        </div>
+
+                    </div>
+
+                    <button class="carousel-control-prev" type="button" data-bs-target="#carousel" data-bs-slide="prev">
+                        <span class="carousel-control-prev-icon cara" aria-hidden="true"></span>
+                        <span class="visually-hidden">Previous</span>
+                    </button>
+                    <button class="carousel-control-next" type="button" data-bs-target="#carousel" data-bs-slide="next">
+                        <span class="carousel-control-next-icon cara" aria-hidden="true"></span>
+                        <span class="visually-hidden">Next</span>
+                    </button>
+                </div>
+            </div>
+
+            <div class="detail-items col-md-6 col-sm-12">
+                <div class="desc-title">Description</div>
+                <div class="description">@fundraiser.Description</div>
+                <div style="margin:3vh;" class="border-bottom" />
+                <div class="row">
+                    <div class="col-6 desc-title">Start</div>
+                    <div class="col-6 desc-title">End</div>
+                    <div class="col-6 description">@fundraiser.StartTime</div>
+
+                    <div class="col-6 description">@fundraiser.EndTime</div>
+                </div>
+                
+                <div style="margin:3vh;" class="border-bottom" />
+                <div class="creator">Created By @fundraiser.CreatedUser.Email</div>
+                <div style="margin:3vh;" class="border-bottom" />
+                @if (fundraiser.SupportsIndividualRegistration)
+		        {
+                    <QuickGrid class="table" Items="individualFundraiserParticipationRegistrations">
+                        <PropertyColumn Property="r => r.User.UserName" Title="Username" />
+                        @if (fundraiser.SupportsParticipantLinks)
+                        {
+                            <TemplateColumn Context="individualfundraiserparticipationregistration" Title="Participant Link">
+                                <a href="@individualfundraiserparticipationregistration.ParticipantLink">@individualfundraiserparticipationregistration.ParticipantLink</a>
+                            </TemplateColumn>
+                        }
+                    </QuickGrid>
+		        }
+
+                @if (fundraiser.SupportsTeamRegistration) {
+                    <QuickGrid class="table" Items="teamFundraiserParticipationRegistrations">
+                        <PropertyColumn Property="r => r.User.UserName" Title="Username" />
+                        <TemplateColumn Context="teamfundraiserparticipationregistration" Title="Team Members">
+                            <ul>
+                                @foreach (var teamMember in teamfundraiserparticipationregistration.TeamMembers)
+                                {
+                                    <li>@teamMember.UserName</li>
+                                }
+                            </ul>
+                        </TemplateColumn>
+                        @if (fundraiser.SupportsParticipantLinks)
+                        {
+                            <TemplateColumn Context="teamfundraiserparticipationregistration" Title="Participant Link">
+                                <a href="@teamfundraiserparticipationregistration.ParticipantLink">@teamfundraiserparticipationregistration.ParticipantLink</a>
+                            </TemplateColumn>
+                        }
+                    </QuickGrid>
+                }
+
+
+                <div style="margin:3vh;" class="border-bottom" />
+                <div class="col-sm-2">Created</div>
+                <div class="col-sm-10">@fundraiser.CreatedTimestamp</div>
+                <div class="col-sm-2">Last Updated</div>
+                <div class="col-sm-10">@fundraiser.LastUpdatedTimestamp</div>
+            </div>
+
+
+            @if (CanCurrentUserModifyFundraiser)
+            {
+                <div>
+                    <a href="@($"/fundraisers/edit?id={fundraiser.Id}")">Edit</a>
+                    <EditForm method="post" Model="fundraiser" OnValidSubmit="DeleteFundraiser" FormName="delete" Enhance>
+                        <button type="submit" class="btn btn-danger" disabled="@(fundraiser is null)">Delete</button>
+                    </EditForm>
+                </div>
+            }
+
+            <a href="@($"/teamfundraiserparticipationregistrations/create?fundraiserId={fundraiser.Id}")">Register</a>
+            }
+            <div style="position:absolute;bottom:0;margin-top:30vh"></div>
+        </div>
+
     }
 </div>
+
 
 @code {
     //[SupplyParameterFromForm(FormName = "register")]

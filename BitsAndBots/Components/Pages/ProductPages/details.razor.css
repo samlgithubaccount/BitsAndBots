@@ -3,7 +3,7 @@
 }
 .title {
     text-align: center;
-    font: 40px arial;
+    font: 40px 'ltsaeada';
     
 }
 
@@ -16,7 +16,7 @@ img {
 
 .price {
     text-align: center;
-    font: 30px arial;
+    font: 30px 'ltsaeada';
     padding: 2vh;
     background-color: white;
     margin: auto;
@@ -38,29 +38,29 @@ img {
 .desc-title {
     text-align: center;
     margin-bottom: 2vh;
-    font: 20px arial;
+    font: 20px 'ltsaeada';
     text-decoration:underline;
 }
 
 .description {
     text-align: center;
-    font: 15px arial;
+    font: 15px 'ltsaeada';
 }
 
 .quantity {
     text-align: center;
-    font: 20px arial;
+    font: 20px 'ltsaeada';
 }
 
 .creator {
     text-align: center;
     margin-bottom: 5vh;
-    font: 20px arial;
+    font: 20px 'ltsaeada';
 }
 
 .edit {
     display: flex;
-    font: 3vh arial;
+    font: 3vh 'ltsaeada';
     color: #0f454a;
 }
 
