@@ -123,6 +123,9 @@
 
         Fundraiser.CreatedUserId = CurrentUser.Id;
 
+        Fundraiser.ExistingStartTime = Fundraiser.StartTime;
+        Fundraiser.ExistingEndTime = Fundraiser.EndTime;
+
         var currentDateTime = DateTime.Now;
         Fundraiser.CreatedTimestamp = currentDateTime;
         Fundraiser.LastUpdatedTimestamp = currentDateTime;
