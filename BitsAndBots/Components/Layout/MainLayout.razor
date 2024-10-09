@@ -21,14 +21,15 @@
                         <Authorized>
                             <div class="nav-item px-3">
                                 <NavLink class="nav-link" href="@(context.User.Identity?.Name + "/Profile")">
-                                    <span class="bi bi-person-fill-nav-menu" aria-hidden="true"></span> @context.User.Identity?.Name
+                                    <span class="bi bi-person-fill-nav-menu" aria-hidden="true"></span> 
+                                    <p class="nav-text-2">@context.User.Identity?.Name</p>
                                 </NavLink>
                             </div>
                             <div class="nav-item px-3">
                                 <form action="Account/Logout" method="post">
                                     <AntiforgeryToken />
                                     <input type="hidden" name="ReturnUrl" value="@currentUrl" />
-                                    <button type="submit" class="nav-link">
+                                    <button type="submit" class="btn btn-secondary">
                                         <span class="bi bi-arrow-bar-left-nav-menu" aria-hidden="true"></span> Logout
                                     </button>
                                 </form>
