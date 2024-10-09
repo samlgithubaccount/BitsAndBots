@@ -26,90 +26,117 @@
 
 @* TODO: All product class?
 TODO: Navigate correctly *@
- @if (!Products.Any())
- {
- }
- else
- {
-     <h4>Products</h4>
-     <div class="col-lg-9 col-md-12 scrollbox">
-         @foreach (var product in Products)
-         {
-             <div class="product-info">
-                 <a href="@($"products/details?id={product.Id}")">
-                     <img src="data:image;base64,@System.Convert.ToBase64String(product.Images.First().ImageData)" />
-                     <div class="name">@product.Title</div>
-                 </a>
-             </div>
-         }
-     </div>
- }
-
-@if (!Events.Any())
-{
-}
-else
-{
-    <h4>Events</h4>
-    <div class="col-lg-9 col-md-12 scrollbox">
-        @foreach (var e in Events)
-        {
-            <div class="product-info">
-                <a href="@($"events/details?id={e.Id}")">
-                    <img src="data:image;base64,@System.Convert.ToBase64String(e.Images.First().ImageData)" />
-                    <div class="name">@e.Title</div>
-                </a>
-            </div>
-        }
-    </div>
-}
-
-@if (!IndividualFundraiserRegistrations.Any())
-{
-}
-else
-{
-    <h4>Individual Fundraiser Registrations</h4>
-    <div class="col-lg-9 col-md-12 scrollbox">
-        @foreach (var registration in IndividualFundraiserRegistrations)
-        {
-            <div class="product-info">
-                    <a href="@($"fundraisers/details?id={registration.FundraiserId}")">
-                        <img src="data:image;base64,@System.Convert.ToBase64String(registration.Fundraiser.Images.First().ImageData)" />
-                        <div class="name">@registration.Fundraiser.Title</div>
-                </a>
-            </div>
-            @if (!string.IsNullOrWhiteSpace(registration.ParticipantLink))
+<div class="row">
+    <div class="col-12">
+        <h4>Products</h4>
+        <div style="margin:3vh;" class="border-bottom" />
+        <div id="prodContents" class="scrollbox">
+            @if (!Products.Any())
             {
-                <a href="@registration.ParticipantLink">@registration.ParticipantLink</a>
             }
-        }
-    </div>
-}
-
-@if (!TeamFundraiserRegistrations.Any())
-{
-}
-else
-{
-    <h4>Team Fundraiser Registrations</h4>
-    <div class="col-lg-9 col-md-12 scrollbox">
-        @foreach (var registration in TeamFundraiserRegistrations)
-        {
-            <div class="product-info">
-                <a href="@($"fundraisers/details?id={registration.FundraiserId}")">
-                    <img src="data:image;base64,@System.Convert.ToBase64String(registration.Fundraiser.Images.First().ImageData)" />
-                    <div class="name">@registration.Fundraiser.Title</div>
-                </a>
-            </div>
-            <span>@registration.TeamName</span>
-            @if (!string.IsNullOrWhiteSpace(registration.ParticipantLink))
+            else
             {
-                <a href="@registration.ParticipantLink">@registration.ParticipantLink</a>
+                @foreach (var product in Products)
+                {
+                    <div class="product-info">
+                        <a href="@($"products/details?id={product.Id}")">
+                            <img src="data:image;base64,@System.Convert.ToBase64String(product.Images.First().ImageData)" />
+                            <div class="name">@product.Title</div>
+                        </a>
+                    </div>
+                }
+
             }
-        }
+        </div>
     </div>
-}
+
+    <div style="margin-bottom:10vh;"></div>
+
+    <div class="col-12">
+        <h4>Events</h4>
+        <div style="margin:3vh;" class="border-bottom" />
+        <div class="scrollbox">
+            @if (!Events.Any())
+            {
+            }
+            else
+            {
+                @foreach (var e in Events)
+                {
+                    <div class="product-info">
+                        <a href="@($"events/details?id={e.Id}")">
+                            <img src="data:image;base64,@System.Convert.ToBase64String(e.Images.First().ImageData)" />
+                            <div class="name">@e.Title</div>
+                        </a>
+                    </div>
+                }
+
+            }
+        </div>
+    </div>
+
+    <div style="margin-bottom:10vh;"></div>
+
+    <div class="col-12">
+        <h4>Individual Fundraiser Registrations</h4>
+        <div style="margin:3vh;" class="border-bottom" />
+        <div class="scrollbox">
+            @if (!IndividualFundraiserRegistrations.Any())
+            {
+            }
+            else
+            {
+                @foreach (var registration in IndividualFundraiserRegistrations)
+                {
+                    <div class="product-info">
+                        <a href="@($"fundraisers/details?id={registration.FundraiserId}")">
+                            <img src="data:image;base64,@System.Convert.ToBase64String(registration.Fundraiser.Images.First().ImageData)" />
+                            <div class="name">@registration.Fundraiser.Title</div>
+                        </a>
+                    </div>
+                    @if (!string.IsNullOrWhiteSpace(registration.ParticipantLink))
+                    {
+                        <a href="@registration.ParticipantLink">@registration.ParticipantLink</a>
+                    }
+                }
+
+            }
+        </div>
+    </div>
+
+    <div style="margin-bottom:10vh;"></div>
+
+    <div class="col-12">
+        <h4>Team Fundraiser Registrations</h4>
+        <div style="margin:3vh;" class="border-bottom" />
+        <div class="scrollbox">
+            @if (!TeamFundraiserRegistrations.Any())
+            {
+            }
+            else
+            {
+                @foreach (var registration in TeamFundraiserRegistrations)
+                {
+                    <div class="product-info">
+                        <a href="@($"fundraisers/details?id={registration.FundraiserId}")">
+                            <img src="data:image;base64,@System.Convert.ToBase64String(registration.Fundraiser.Images.First().ImageData)" />
+                            <div class="name">@registration.Fundraiser.Title</div>
+                        </a>
+                    </div>
+                    <span>@registration.TeamName</span>
+                    @if (!string.IsNullOrWhiteSpace(registration.ParticipantLink))
+                    {
+                        <a href="@registration.ParticipantLink">@registration.ParticipantLink</a>
+                    }
+                }
+            }
+        </div>
+    </div>
+</div>
+<div style="margin-bottom:10vh;"></div>
+
+
+
 
 
 
@@ -125,6 +152,7 @@ else
     private List<Event> Events { get; set; } = new();
     private List<IndividualFundraiserParticipationRegistration> IndividualFundraiserRegistrations { get; set; } = new();
     private List<TeamFundraiserParticipationRegistration> TeamFundraiserRegistrations { get; set; } = new();
+
 
     protected override async Task OnInitializedAsync()
     {
