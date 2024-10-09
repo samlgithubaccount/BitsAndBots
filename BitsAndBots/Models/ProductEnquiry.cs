@@ -11,6 +11,7 @@ namespace BitsAndBots.Models
         public ApplicationUser User { get; set; }
         public Product Product { get; set; }
         public string Title { get; set; }
+        [Range(0, Int32.MaxValue)]
         public int? Quantity { get; set; }
         public double? Price { get; set; }
     }

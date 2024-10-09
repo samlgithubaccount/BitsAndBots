@@ -109,7 +109,7 @@ button.accept-policy {
 .footer {
     line-height: 10vh;
     background-image: linear-gradient(#ec8959, #ce6a46);
-    position: fixed;
+    position: relative;
     left: 0;
     bottom: 0;
     width: 100%;

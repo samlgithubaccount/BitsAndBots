@@ -14,12 +14,16 @@ namespace BitsAndBots.Models
         [Required]
         public string Description { get; set; }
         [Required]
-        [FutureDateTimeValidator(ErrorMessage = "Start must be in the future.")]
+        [Display(Name = "Start Time")]
+        [FutureDateTimeValidator("ExistingStartTime")]
         public DateTime StartTime { get; set; } = DateTime.Now.AddHours(1);
+        public DateTime ExistingStartTime { get; set; }
         [Required]
-        [FutureDateTimeValidator(ErrorMessage = "Ends must be in the future.")]
+        [Display(Name = "End Time")]
+        [FutureDateTimeValidator("ExistingEndTime")]
         [EndTimeValidator("StartTime")]
         public DateTime EndTime { get; set; } = DateTime.Now.AddHours(2);
+        public DateTime ExistingEndTime { get; set; }
         [StringLength(60, ErrorMessage = "The {0} must be at least {2} and at max {1} characters long.", MinimumLength = 1)]
         [Required]
         public string Organiser { get; set; }

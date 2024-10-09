@@ -99,6 +99,9 @@
 
         Event.CreatedUserId = CurrentUser.Id;
 
+        Event.ExistingStartTime = Event.StartTime;
+        Event.ExistingEndTime = Event.EndTime;
+
         var currentDateTime = DateTime.Now;
         Event.CreatedTimestamp = currentDateTime;
         Event.LastUpdatedTimestamp = currentDateTime;

@@ -45,6 +45,7 @@ else
                     <InputTextArea id="description" @bind-Value="Event.Description" class="form-control" />
                     <ValidationMessage For="() => Event.Description" class="text-danger" />
                 </div>
+                @* TODO: Allow min value as existing value here too *@
                 <div class="row">
                     <div class="mb-3 col-6">
                         <label for="start-time" class="form-label">Start:</label>
@@ -153,6 +154,9 @@ else
         {
             context.Entry(image).State = EntityState.Deleted;
         }
+
+        Event.ExistingStartTime = Event.StartTime;
+        Event.ExistingEndTime = Event.EndTime;
 
         Event.LastUpdatedTimestamp = DateTime.Now;
 

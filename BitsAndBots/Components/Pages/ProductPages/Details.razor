@@ -92,15 +92,18 @@ crossorigin="anonymous"></script>
                             <InputTextArea id="message" @bind-Value="productEnquiry.Message" class="form-control" />
                             <ValidationMessage For="() => productEnquiry.Message" class="text-danger" />
                         </div>
-                        @* TODO: Validate less than avaialable quantity *@
                         @if (product.Quantity != null) {
                             <div class="mb-3">
                                 <label for="quantity" class="form-label">Quantity:</label>
                                 <InputNumber id="quantity" @bind-Value="productEnquiry.Quantity" class="form-control" />
                                 <ValidationMessage For="() => productEnquiry.Quantity" class="text-danger" />
+                                @if (displayEnquiryQuantityValidationMessage)
+                                {
+                                    <div class="text-danger">The quantity requested is larger than the available quantity.</div>
+                                }
                             </div>
                         }
-                        <button type="submit" class="btn btn-primary" disabled="@(product is null || enquirySubmitted)">Submit</button>
+                        <button type="submit" @onclick="ClearErrors" class="btn btn-primary" disabled="@(product is null || enquirySubmitted)">Submit</button>
                     </EditForm>
                     @if (enquirySubmitted)
                     {
@@ -132,6 +135,7 @@ crossorigin="anonymous"></script>
     ProductEnquiry productEnquiry { get; set; } = new();
     Product? product;
     bool enquirySubmitted;
+    bool displayEnquiryQuantityValidationMessage = false;
 
     public ApplicationUser CurrentUser { get; set; }
 
@@ -158,6 +162,11 @@ crossorigin="anonymous"></script>
         CanCurrentUserModifyProduct = await UserCreatedProductOrIsAdministrator();
     }
 
+    public void ClearErrors()
+    {
+        displayEnquiryQuantityValidationMessage = false;
+    }
+
     public async Task DeleteProduct()
     {
         using var context = DbFactory.CreateDbContext();
@@ -169,9 +178,15 @@ crossorigin="anonymous"></script>
     public void SubmitEnquiry()
     {
         if (enquirySubmitted)
-		{
-			return;
-		}
+        {
+            return;
+        }
+
+        if (productEnquiry.Quantity != null && productEnquiry.Quantity > product.Quantity)
+        {
+            displayEnquiryQuantityValidationMessage = true;
+            return;
+        }
 
         productEnquiry.Product = product!;
         productEnquiry.Title = product!.Title;
@@ -187,7 +202,6 @@ crossorigin="anonymous"></script>
 
         var emailService = new EmailService(emailCredentials);
 
-        //TODO: Add product url?
         var message = string.Format(
             "You have received a product enquiry for your listing on Bits & Bots\n\n Enquiry Details\n Product Title: {0} \n {1} {2} From: {3} \n\n Message: {4} \n\nTo respond to this enquiry send an email to the email address in the enquiry details.",
             productEnquiry.Title, 

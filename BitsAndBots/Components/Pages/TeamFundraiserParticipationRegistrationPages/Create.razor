@@ -32,22 +32,31 @@
             {
                 IsTeamRegistration = true;
             }
-            else if (Fundraiser.SupportsIndividualRegistration && Fundraiser.SupportsTeamRegistration)
-            {
-                <div class="mb-3">
-                    <div class="form-group">
-                        <label>
-                            Team Registration:
-                            <InputCheckbox @bind-Value="IsTeamRegistration"/>
-                        </label>
-                    </div>
-                </div>
-            }
             @if (IsTeamRegistration)
             {
                 <EditForm method="post" Model="TeamFundraiserParticipationRegistration" OnValidSubmit="AddFundraiserParticipationRegistration" FormName="create" Enhance>
                     <DataAnnotationsValidator />
+                    @if (registrationValidationMessages.Any())
+                    {
+                        <ul class="text-danger">
+                            @foreach (var message in registrationValidationMessages)
+                            {
+                                <li class="validation-message">@message</li>
+                            }
+                        </ul>
+                    }
                     <ValidationSummary class="text-danger" />
+                    @if (Fundraiser.SupportsIndividualRegistration && Fundraiser.SupportsTeamRegistration)
+                    {
+                        <div class="mb-3">
+                            <div class="form-group">
+                                <label>
+                                    Team Registration:
+                                    <InputCheckbox @bind-Value="IsTeamRegistration" />
+                                </label>
+                            </div>
+                        </div>
+                    }
                     <div class="mb-3">
                         <label for="teamname" class="form-label">TeamName:</label>
                         <InputText id="teamname" @bind-Value="TeamFundraiserParticipationRegistration.TeamName" class="form-control" />
@@ -79,13 +88,33 @@
                             <ValidationMessage For="() => ParticipantLink" class="text-danger" />
                         </div>
                     }
-                    <button type="submit" class="btn btn-primary">Register</button>
+                    <button @onclick="ClearErrors" type="submit" class="btn btn-primary">Register</button>
                 </EditForm>
             } else
             {
                 <EditForm method="post" Model="IndividualFundraiserParticipationRegistration" OnValidSubmit="AddFundraiserParticipationRegistration" FormName="create" Enhance>
                     <DataAnnotationsValidator />
+                    @if (registrationValidationMessages.Any())
+                    {
+                        <ul class="text-danger">
+                            @foreach (var message in registrationValidationMessages)
+                            {
+                                <li class="validation-message">@message</li>
+                            }
+                        </ul>
+                    }
                     <ValidationSummary class="text-danger" />
+                    @if (Fundraiser.SupportsIndividualRegistration && Fundraiser.SupportsTeamRegistration)
+                    {
+                        <div class="mb-3">
+                            <div class="form-group">
+                                <label>
+                                    Team Registration:
+                                    <InputCheckbox @bind-Value="IsTeamRegistration" />
+                                </label>
+                            </div>
+                        </div>
+                    }
                     @if (Fundraiser.SupportsParticipantLinks)
                     {
                         <div class="mb-3">
@@ -94,7 +123,7 @@
                             <ValidationMessage For="() => ParticipantLink" class="text-danger" />
                         </div>
                     }
-                    <button type="submit" class="btn btn-primary">Register</button>
+                    <button @onclick="ClearErrors" type="submit" class="btn btn-primary">Register</button>
                 </EditForm>
             }
             
@@ -114,6 +143,7 @@
     [SupplyParameterFromForm]
     private IndividualFundraiserParticipationRegistration IndividualFundraiserParticipationRegistration { get; set; } = new();
     private string ParticipantLink { get; set; }
+    IList<string> registrationValidationMessages = new List<string>();
 
     public ApplicationUser CurrentUser { get; set; }
     private Fundraiser Fundraiser;
@@ -135,52 +165,78 @@
         }
     }
 
+    public void ClearErrors()
+    {
+        registrationValidationMessages.Clear();
+    }
+
     // To protect from overposting attacks, see https://learn.microsoft.com/aspnet/core/blazor/forms/#mitigate-overposting-attacks.
     private async Task AddFundraiserParticipationRegistration()
     {
         using var context = DbFactory.CreateDbContext();
 
         if (Fundraiser.SupportsIndividualRegistration) {
-            var existingRegistrationForCreator = await context.IndividualFundraiserParticipationRegistration
-            .FirstOrDefaultAsync(registration => registration.UserId == CurrentUser.Id && registration.FundraiserId == Fundraiser.Id);
-
-            if (existingRegistrationForCreator != null)
+            var existingIndividualRegistrationForCreator = await context.IndividualFundraiserParticipationRegistration
+                .FirstOrDefaultAsync(registration => registration.UserId == CurrentUser.Id && registration.FundraiserId == Fundraiser.Id);
+            if (existingIndividualRegistrationForCreator != null)
             {
-                //TODO: Add error message
-                return;
+                registrationValidationMessages.Add("You have an existing registration for this fundraiser.");
+            }
+
+            var teamMembersWithExistingIndividualRegistrations = await context.IndividualFundraiserParticipationRegistration
+                .Where(registration => registration.FundraiserId == Fundraiser.Id && TeamFundraiserParticipationRegistration.TeamMembers.Select(user => user.Id).Contains(registration.User.Id))
+                .Select(registration => registration.User.UserName)
+                .ToListAsync();
+            if (teamMembersWithExistingIndividualRegistrations.Any())
+            {
+                registrationValidationMessages.Add($"The following users have an existing individual registration for this fundraiser: {string.Join(", ", teamMembersWithExistingIndividualRegistrations)}");
             }
         }
 
-        if (Fundraiser.SupportsTeamRegistration)
-        {
-            var usersWithExistingregistrations = await context.TeamFundraiserParticipationRegistration
-            .Where(registration => registration.FundraiserId == Fundraiser.Id)
-            .Select(registration => registration.User)
-            .Where(user => TeamFundraiserParticipationRegistration.TeamMembers.Select(user => user.Id).Contains(user.Id) || CurrentUser.Id == user.Id)
-            .ToListAsync();
-
-            if (usersWithExistingregistrations.Any())
+        if (Fundraiser.SupportsTeamRegistration) {
+            var existingTeamRegistrationForCreator = await context.TeamFundraiserParticipationRegistration
+                .FirstOrDefaultAsync(registration => registration.UserId == CurrentUser.Id && registration.FundraiserId == Fundraiser.Id);
+            if (existingTeamRegistrationForCreator != null)
             {
-                //TODO: Add error message
-                return;
+                registrationValidationMessages.Add("You have an existing registration for this fundraiser.");
             }
 
-            var usersWithExistingTeamMemberships = await context.TeamFundraiserParticipationRegistration
+            var existingTeamMembershipForCreator = await context.TeamFundraiserParticipationRegistration
                 .Where(registration => registration.FundraiserId == Fundraiser.Id)
                 .SelectMany(registration => registration.TeamMembers)
-                .Where(user => TeamFundraiserParticipationRegistration.TeamMembers.Select(user => user.Id).Contains(user.Id) || CurrentUser.Id == user.Id)
-                .ToListAsync();
-
-            if (usersWithExistingTeamMemberships.Any())
+                .FirstOrDefaultAsync(user => CurrentUser.Id == user.Id);
+            if (existingTeamMembershipForCreator != null)
             {
-                //Todo: add error message with team member names
-                return;
+                registrationValidationMessages.Add("You have an existing team membership for this fundraiser.");
+            }
+
+            var teamMembersWithExistingTeamRegistrations = await context.TeamFundraiserParticipationRegistration
+                .Where(registration => registration.FundraiserId == Fundraiser.Id)
+                .Select(registration => registration.User)
+                .Where(user => TeamFundraiserParticipationRegistration.TeamMembers.Select(user => user.Id).Contains(user.Id))
+                .Select(user => user.UserName)
+                .ToListAsync();
+            if (teamMembersWithExistingTeamRegistrations.Any())
+            {
+                registrationValidationMessages.Add($"The following users have an existing team registration for this fundraiser: {string.Join(", ", teamMembersWithExistingTeamRegistrations)}");
+            }
+
+            var teamMembersWithExistingTeamMemberships = await context.TeamFundraiserParticipationRegistration
+                .Where(registration => registration.FundraiserId == Fundraiser.Id)
+                .SelectMany(registration => registration.TeamMembers)
+                .Where(user => TeamFundraiserParticipationRegistration.TeamMembers.Select(user => user.Id).Contains(user.Id))
+                .Select(user => user.UserName)
+                .ToListAsync();
+            if (teamMembersWithExistingTeamMemberships.Any())
+            {
+                registrationValidationMessages.Add($"The following users have an existing team membership for this fundraiser: {string.Join(", ", teamMembersWithExistingTeamMemberships)}");
             }
         }
-        //       if (existingRegistration != null) {
-        //           registrationValidationMessages.Add("You have already registered for this fundraiser.");
-        //           return;
-        //       }
+
+        if (registrationValidationMessages.Any())
+        {
+            return;
+        }
 
         if (IsTeamRegistration)
         {
