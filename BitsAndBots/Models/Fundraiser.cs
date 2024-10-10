@@ -14,12 +14,12 @@ namespace BitsAndBots.Models
         [Required]
         public string Description { get; set; }
         [Required]
-        [Display(Name = "Start Time")]
+        [Display(Name = "Start time")]
         [FutureDateTimeValidator("ExistingStartTime")]
         public DateTime StartTime { get; set; } = DateTime.Now.AddHours(1);
         public DateTime ExistingStartTime { get; set; }
         [Required]
-        [Display(Name = "End Time")]
+        [Display(Name = "End time")]
         [FutureDateTimeValidator("ExistingEndTime")]
         [EndTimeValidator("StartTime")]
         public DateTime EndTime { get; set; } = DateTime.Now.AddHours(2);
@@ -27,7 +27,8 @@ namespace BitsAndBots.Models
         [StringLength(60, ErrorMessage = "The {0} must be at least {2} and at max {1} characters long.", MinimumLength = 1)]
         [Required]
         public string Organiser { get; set; }
-        [StringLength(60, ErrorMessage = "The {0} must be at least {2} and at max {1} characters long.", MinimumLength = 4)]
+        [Display(Name = "Fundraiser Link")]
+        [StringLength(60, ErrorMessage = "The {0} must be at max {1} characters long.")]
         [UrlValidator(ErrorMessage = "{0} must be a valid URL.")]
         public string? FundraiserLink { get; set; }
         public bool SupportsParticipantLinks { get; set; }
@@ -40,8 +41,8 @@ namespace BitsAndBots.Models
         public DateTime LastUpdatedTimestamp { get; set; }
         public string CreatedUserId { get; set; }
         public ApplicationUser CreatedUser { get; set; }
-        [StringLength(150, ErrorMessage = "{0}  may only contain up to {1} characters.")]
-        public string Tags { get; set; }
+        [StringLength(150, ErrorMessage = "{0} may only contain up to {1} characters.")]
+        public string? Tags { get; set; }
         [MinLength(1, ErrorMessage = "A minimum of 1 Image is required.")]
         public IList<FundraiserImage> Images { get; set; } = [];
         [StringLength(50, ErrorMessage = "The {0} must be at least {2} and at max {1} characters long.", MinimumLength = 3)]

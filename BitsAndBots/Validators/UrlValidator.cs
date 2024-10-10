@@ -7,7 +7,7 @@ namespace BitsAndBots.Validators
     {
         public override bool IsValid(object? value)
         {
-            if (value == null)
+            if (value == null || string.IsNullOrWhiteSpace(value.ToString()))
             {
                 return true;
             }

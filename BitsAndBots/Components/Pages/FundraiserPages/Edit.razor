@@ -231,6 +231,7 @@ else
             if (Fundraiser.EndTime <= Fundraiser.StartTime)
             {
                 Fundraiser.EndTime = Fundraiser.StartTime.AddHours(1);
+                EditContext.NotifyFieldChanged(EditContext.Field(nameof(Fundraiser.EndTime)));
             }
         }
     }

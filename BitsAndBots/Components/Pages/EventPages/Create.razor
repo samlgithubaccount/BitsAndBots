@@ -136,6 +136,7 @@
             if (Event.EndTime <= Event.StartTime)
             {
                 Event.EndTime = Event.StartTime.AddHours(1);
+                EditContext.NotifyFieldChanged(EditContext.Field(nameof(Event.EndTime)));
             }
         }
     }
