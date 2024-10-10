@@ -32,12 +32,14 @@ namespace BitsAndBots.Models
         [Range(0, 999999999D)]
         public double? TicketPrice { get; set; }
         [StringLength(60, ErrorMessage = "The {0} must be at least {2} and at max {1} characters long.", MinimumLength = 4)]
+        [UrlValidator(ErrorMessage = "{0} must be a valid URL.")]
         public string? TicketLink { get; set; }
         public DateTime CreatedTimestamp { get; set; }
         public DateTime LastUpdatedTimestamp { get; set; }
         public string CreatedUserId { get; set; }
         public ApplicationUser CreatedUser { get; set; }
-        public ICollection<string> Tags { get; set; } = [];
+        [StringLength(150, ErrorMessage = "{0}  may only contain up to {1} characters.")]
+        public string Tags { get; set; }
         [MinLength(1, ErrorMessage = "A minimum of 1 Image is required.")]
         public IList<EventImage> Images { get; set; } = [];
         [StringLength(50, ErrorMessage = "The {0} must be at least {2} and at max {1} characters long.", MinimumLength = 3)]

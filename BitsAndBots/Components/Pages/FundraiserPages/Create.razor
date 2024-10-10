@@ -91,8 +91,8 @@
             </div>
             <div class="mb-3">
                 <label for="tags" class="form-label">Tags:</label>
-                <InputTextArea id="tags" @bind-Value="TagsList" class="form-control" />
-                <ValidationMessage For="() => TagsList" class="text-danger" />
+                <InputTextArea id="tags" @bind-Value="Fundraiser.Tags" class="form-control" />
+                <ValidationMessage For="() => Fundraiser.Tags" class="text-danger" />
             </div>
             <div class="mb-3">
                 <label for="location" class="form-label">Location:</label>
@@ -151,12 +151,6 @@
         EditContext = new EditContext(Fundraiser);
         ValidationMessageStore = new ValidationMessageStore(EditContext);
         EditContext.OnFieldChanged += EditContext_OnFieldChanged;
-    }
-
-    private string TagsList
-    {
-        get => string.Join(", ", Fundraiser.Tags);
-        set => Fundraiser.Tags = value.Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries).Select(tag => tag.Trim()).ToList();
     }
 
     private void EditContext_OnFieldChanged(object sender, FieldChangedEventArgs e)

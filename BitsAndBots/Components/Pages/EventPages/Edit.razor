@@ -45,16 +45,15 @@ else
                     <InputTextArea id="description" @bind-Value="Event.Description" class="form-control" />
                     <ValidationMessage For="() => Event.Description" class="text-danger" />
                 </div>
-                @* TODO: Allow min value as existing value here too *@
                 <div class="row">
                     <div class="mb-3 col-6">
                         <label for="start-time" class="form-label">Start:</label>
-                        <InputDate Type="InputDateType.DateTimeLocal" min="@DateTime.Now.ToString("yyyy-MM-ddTHH:mm")" id="start-time" @bind-Value="Event.StartTime" class="form-control" />
+                        <InputDate Type="InputDateType.DateTimeLocal" min="@minimumStartTime.ToString("yyyy-MM-ddTHH:mm")" id="start-time" @bind-Value="Event.StartTime" class="form-control" />
                         <ValidationMessage For="() => Event.StartTime" class="text-danger" />
                     </div>
                     <div class="mb-3 col-6">
                         <label for="end-time" class="form-label">End:</label>
-                        <InputDate Type="InputDateType.DateTimeLocal" min="@Event.StartTime.ToString("yyyy-MM-ddTHH:mm")" id="end-time" @bind-Value="Event.EndTime" class="form-control" />
+                        <InputDate Type="InputDateType.DateTimeLocal" min="@minimumEndTime.ToString("yyyy-MM-ddTHH:mm")" id="end-time" @bind-Value="Event.EndTime" class="form-control" />
                         <ValidationMessage For="() => Event.EndTime" class="text-danger" />
                     </div>
                 </div>
@@ -77,8 +76,8 @@ else
                 </div>
                 <div class="mb-3">
                     <label for="tags" class="form-label">Tags:</label>
-                    <InputTextArea id="tags" @bind-Value="TagsList" class="form-control" />
-                    <ValidationMessage For="() => TagsList" class="text-danger" />
+                    <InputTextArea id="tags" @bind-Value="Event.Tags" class="form-control" />
+                    <ValidationMessage For="() => Event.Tags" class="text-danger" />
                 </div>
                 <div class="mb-3">
                     <label for="location" class="form-label">Location:</label>
@@ -110,6 +109,9 @@ else
     public ValidationMessageStore ValidationMessageStore;
 
     public ApplicationUser CurrentUser { get; set; }
+
+    private DateTime minimumStartTime = DateTime.Now;
+    private DateTime minimumEndTime = DateTime.Now;
 
     protected override async Task OnInitializedAsync()
     {
@@ -158,6 +160,16 @@ else
         Event.ExistingStartTime = Event.StartTime;
         Event.ExistingEndTime = Event.EndTime;
 
+
+        if (Event.ExistingStartTime < minimumStartTime)
+        {
+            minimumStartTime = Event.ExistingStartTime;
+        }
+        if (Event.ExistingEndTime < minimumEndTime)
+        {
+            minimumEndTime = Event.ExistingEndTime;
+        }
+
         Event.LastUpdatedTimestamp = DateTime.Now;
 
         try
@@ -188,12 +200,6 @@ else
     {
         using var context = DbFactory.CreateDbContext();
         return context.Event.Any(e => e.Id == id);
-    }
-
-    private string TagsList
-    {
-        get => string.Join(", ", Event.Tags);
-        set => Event.Tags = value.Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries).Select(tag => tag.Trim()).ToList();
     }
 
     private void EditContext_OnFieldChanged(object sender, FieldChangedEventArgs e)
