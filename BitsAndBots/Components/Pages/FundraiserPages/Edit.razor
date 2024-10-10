@@ -153,6 +153,15 @@ else
 
         imagesInDatabase = Fundraiser.Images.ToList();
 
+        if (Fundraiser.ExistingStartTime < minimumStartTime)
+        {
+            minimumStartTime = Fundraiser.ExistingStartTime;
+        }
+        if (Fundraiser.ExistingEndTime < minimumEndTime)
+        {
+            minimumEndTime = Fundraiser.ExistingEndTime;
+        }
+
         EditContext = new EditContext(Fundraiser);
         ValidationMessageStore = new ValidationMessageStore(EditContext);
         EditContext.OnFieldChanged += EditContext_OnFieldChanged;
@@ -182,14 +191,6 @@ else
 
         Fundraiser.ExistingStartTime = Fundraiser.StartTime;
         Fundraiser.ExistingEndTime = Fundraiser.EndTime;
-
-        if (Fundraiser.ExistingStartTime < minimumStartTime) {
-            minimumStartTime = Fundraiser.ExistingStartTime;
-        }
-        if (Fundraiser.ExistingEndTime < minimumEndTime)
-        {
-            minimumEndTime = Fundraiser.ExistingEndTime;
-        }
 
         Fundraiser.LastUpdatedTimestamp = DateTime.Now;
 

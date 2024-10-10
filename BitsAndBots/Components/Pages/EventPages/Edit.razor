@@ -130,6 +130,15 @@ else
 
         imagesInDatabase = Event.Images.ToList();
 
+        if (Event.ExistingStartTime < minimumStartTime)
+        {
+            minimumStartTime = Event.ExistingStartTime;
+        }
+        if (Event.ExistingEndTime < minimumEndTime)
+        {
+            minimumEndTime = Event.ExistingEndTime;
+        }
+
         EditContext = new EditContext(Event);
         ValidationMessageStore = new ValidationMessageStore(EditContext);
         EditContext.OnFieldChanged += EditContext_OnFieldChanged;
@@ -159,16 +168,6 @@ else
 
         Event.ExistingStartTime = Event.StartTime;
         Event.ExistingEndTime = Event.EndTime;
-
-
-        if (Event.ExistingStartTime < minimumStartTime)
-        {
-            minimumStartTime = Event.ExistingStartTime;
-        }
-        if (Event.ExistingEndTime < minimumEndTime)
-        {
-            minimumEndTime = Event.ExistingEndTime;
-        }
 
         Event.LastUpdatedTimestamp = DateTime.Now;
 
