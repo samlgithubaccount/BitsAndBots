@@ -1,9 +1,3 @@
-
-@font-face {
-    font-family: gills-bold;
-    src: url(fonts/gill-sans-ultra-bold.ttf);
-    font-weight: bold;
-}
 @font-face {
     font-family: ltsaeada;
     src: url(fonts/LTSaeada-Regular.otf);
@@ -14,9 +8,14 @@
     src: url(fonts/Tondu-Beta.ttf);
     font-weight: normal;
 }
+@font-face {
+    font-family: garet;
+    src: url(fonts/Garet-Book.ttf);
+    font-weight: normal;
+}
 
 html, body {
-    font-family: ltsaeada, Helvetica, Arial, sans-serif;
+    font-family: garet, Helvetica, Arial, sans-serif;
 }
 
 
@@ -73,19 +72,12 @@ html {
     box-shadow: 0 .25rem .75rem #f5f4f2;
 }
 
-.btn:focus, .btn:active:focus, .btn-link.nav-link:focus, .form-control:focus, .form-check-input:focus {
-    box-shadow: 0 0 0 0.1rem white, 0 0 0 0.25rem #258cfb;
-}
+
 
 html {
     position: relative;
     min-height: 100%;
 }
-
-body {
-    margin-bottom: 60px;
-}
-
 
 
 .content {

@@ -47,14 +47,20 @@ else
                 <div class="row">
                     <div class="mb-3 col-6">
                         <label for="start-time" class="form-label">Start:</label>
-                        <InputDate Type="InputDateType.DateTimeLocal" min="@DateTime.Now.ToString("yyyy-MM-ddTHH:mm")" id="start-time" @bind-Value="Fundraiser.StartTime" class="form-control" />
+                        <InputDate Type="InputDateType.DateTimeLocal" min="@minimumStartTime.ToString("yyyy-MM-ddTHH:mm")" id="start-time" @bind-Value="Fundraiser.StartTime" class="form-control" />
                         <ValidationMessage For="() => Fundraiser.StartTime" class="text-danger" />
                     </div>
                     <div class="mb-3 col-6">
                         <label for="end-time" class="form-label">End:</label>
-                        <InputDate Type="InputDateType.DateTimeLocal" min="@Fundraiser.StartTime.ToString("yyyy-MM-ddTHH:mm")" id="end-time" @bind-Value="Fundraiser.EndTime" class="form-control" />
+                        <InputDate Type="InputDateType.DateTimeLocal" min="@minimumEndTime.ToString("yyyy-MM-ddTHH:mm")" id="end-time" @bind-Value="Fundraiser.EndTime" class="form-control" />
                         <ValidationMessage For="() => Fundraiser.EndTime" class="text-danger" />
                     </div>
+                </div>
+
+                <div class="mb-3">
+                    <label for="organiser" class="form-label">Organiser:</label>
+                    <InputText id="organiser" @bind-Value="Fundraiser.Organiser" class="form-control" />
+                    <ValidationMessage For="() => Fundraiser.Organiser" class="text-danger" />
                 </div>
 
                 <div class="mb-3">
@@ -62,10 +68,40 @@ else
                     <InputText id="fundraiser-link" @bind-Value="Fundraiser.FundraiserLink" class="form-control" />
                     <ValidationMessage For="() => Fundraiser.FundraiserLink" class="text-danger" />
                 </div>
+                <!-- TODO: style text as grey -->
+                <div class="mb-3">
+                    <label class="form-label">Supported Registration Types:</label>
+                    <ValidationMessage For="() => Fundraiser.RegistrationTypeSelected" class="text-danger" />
+
+                    <div class="row">
+                        <div class="form-group col-6">
+                            <label>
+                                <input type="checkbox" id="supports-individual-registration" checked="@Fundraiser.SupportsIndividualRegistration" disabled />
+                                Individual
+                            </label>
+                        </div>
+                        <div class="form-group col-6">
+                            <label>
+                                <input type="checkbox" id="supports-team-registration" checked="@Fundraiser.SupportsTeamRegistration" disabled />
+                                Team
+                            </label>
+                        </div>
+                    </div>
+                </div>
+                <!-- TODO: style text as grey -->
+                <div class="mb-3">
+                    <div class="form-group">
+                        <label>
+                            Allow Participant Links:
+                            <input type="checkbox" id="supports-participant-links" checked="@Fundraiser.SupportsParticipantLinks" disabled />
+                        </label>
+                    </div>
+                    <ValidationMessage For="() => Fundraiser.SupportsParticipantLinks" class="text-danger" />
+                </div>
                 <div class="mb-3">
                     <label for="tags" class="form-label">Tags:</label>
-                    <InputTextArea id="tags" @bind-Value="TagsList" class="form-control" />
-                    <ValidationMessage For="() => TagsList" class="text-danger" />
+                    <InputTextArea id="tags" @bind-Value="Fundraiser.Tags" class="form-control" />
+                    <ValidationMessage For="() => Fundraiser.Tags" class="text-danger" />
                 </div>
                 <div class="mb-3">
                     <label for="location" class="form-label">Location:</label>
@@ -97,6 +133,9 @@ else
 
     public ApplicationUser CurrentUser { get; set; }
 
+    private DateTime minimumStartTime = DateTime.Now;
+    private DateTime minimumEndTime = DateTime.Now;
+
     protected override async Task OnInitializedAsync()
     {
         CurrentUser = await UserService.GetCurrentUser();
@@ -107,12 +146,21 @@ else
             .Include(p => p.CreatedUser)
             .FirstOrDefaultAsync(m => m.Id == Id);
 
-        if (Fundraiser is null)
+        if (Fundraiser is null || !(await UserCreatedFundraiserOrIsAdministrator()))
         {
             NavigationManager.NavigateTo("notfound");
         }
 
         imagesInDatabase = Fundraiser.Images.ToList();
+
+        if (Fundraiser.ExistingStartTime < minimumStartTime)
+        {
+            minimumStartTime = Fundraiser.ExistingStartTime;
+        }
+        if (Fundraiser.ExistingEndTime < minimumEndTime)
+        {
+            minimumEndTime = Fundraiser.ExistingEndTime;
+        }
 
         EditContext = new EditContext(Fundraiser);
         ValidationMessageStore = new ValidationMessageStore(EditContext);
@@ -140,6 +188,9 @@ else
         {
             context.Entry(image).State = EntityState.Deleted;
         }
+
+        Fundraiser.ExistingStartTime = Fundraiser.StartTime;
+        Fundraiser.ExistingEndTime = Fundraiser.EndTime;
 
         Fundraiser.LastUpdatedTimestamp = DateTime.Now;
 
@@ -173,12 +224,6 @@ else
         return context.Fundraiser.Any(e => e.Id == id);
     }
 
-    private string TagsList
-    {
-        get => string.Join(", ", Fundraiser.Tags);
-        set => Fundraiser.Tags = value.Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries).Select(tag => tag.Trim()).ToList();
-    }
-
     private void EditContext_OnFieldChanged(object sender, FieldChangedEventArgs e)
     {
         if (e.FieldIdentifier.FieldName == "StartTime")
@@ -186,7 +231,15 @@ else
             if (Fundraiser.EndTime <= Fundraiser.StartTime)
             {
                 Fundraiser.EndTime = Fundraiser.StartTime.AddHours(1);
+                EditContext.NotifyFieldChanged(EditContext.Field(nameof(Fundraiser.EndTime)));
             }
         }
+    }
+
+    public async Task<bool> UserCreatedFundraiserOrIsAdministrator()
+    {
+        var currentUser = await UserService.GetCurrentUser();
+        var currentUserRoles = await UserService.GetCurrentUserRoles();
+        return currentUser != null && (Fundraiser.CreatedUserId == currentUser.Id || currentUserRoles.Contains("Administrator"));
     }
 }

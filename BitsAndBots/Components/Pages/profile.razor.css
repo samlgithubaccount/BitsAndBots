@@ -35,6 +35,11 @@
     text-decoration-color: #f5f4f2;
 }
 
+.btn-light {
+    width: 100%;
+    font: 30px 'ltsaeada';
+}
+
 .date {
     font: 13px 'ltsaeada';
     color: grey;
@@ -81,7 +86,6 @@ img {
 
 .scrollbox {
     height: auto;
-    min-height: 60vh;
     overflow: auto;
     padding-bottom: 10vh;
     background-color: #E6E6E6;
@@ -95,8 +99,8 @@ img {
         border-radius: 5px;
     }
     .product-info {
-        width: 90%;
-        margin: 5%;
+        width:90%;
+        margin:5%;
         height: auto;
     }
 }

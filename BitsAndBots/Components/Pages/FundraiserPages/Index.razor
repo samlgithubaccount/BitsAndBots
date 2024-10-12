@@ -114,15 +114,28 @@
 
         var sortOption = FundraiserSortOptions.GetByDisplayName(SortBy);
 
+        var searchQuery = SearchQuery.ToLower().Trim();
+        var searchKeywords = searchQuery.Split(new char[0], StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+
         var query = context.Fundraiser
-            .Include(e => e.Images.OrderBy(i => i.Index))
-            .Where(e => e.EndTime > DateTime.Now)
-            .Where(e => e.Title.Contains(SearchQuery));
+            .Include(f => f.Images.OrderBy(i => i.Index))
+            .Where(f => f.EndTime > DateTime.Now)
+            .Where(f => f.Title.ToLower().Contains(searchQuery) || searchKeywords.Any(k => f.Tags.ToLower().Contains(k)));
 
         query = sortOption.SortDirection == Models.SortDirection.Ascending
             ? query.OrderBy(sortOption.KeySelector)
             : query.OrderByDescending(sortOption.KeySelector);
 
-        Fundraisers = await query.ToListAsync();
+        var fetchedFundraisers = await query.ToListAsync();
+        //Re filter to ensure it contains the search tags in full as we cannot do this in the EF linq query
+        if (searchKeywords.Any())
+        {
+            fetchedFundraisers = fetchedFundraisers
+            .Where(f => f.Title.ToLower().Contains(searchQuery) ||
+                (f.Tags.Split(",", StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries).Any(t => searchKeywords.Contains(t, StringComparer.OrdinalIgnoreCase))))
+            .ToList();
+        }
+
+        Fundraisers = fetchedFundraisers;
 	}
 }

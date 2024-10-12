@@ -52,8 +52,8 @@
             
             <div class="mb-3">
                 <label for="tags" class="form-label">Tags:</label>
-                <InputTextArea id="tags" @bind-Value="TagsList" class="form-control" />
-                <ValidationMessage For="() => TagsList" class="text-danger" />
+                <InputTextArea id="tags" @bind-Value="Product.Tags" class="form-control" />
+                <ValidationMessage For="() => Product.Tags" class="text-danger" />
             </div>
             <div class="mb-3">
                 <label for="location" class="form-label">Location:</label>
@@ -111,11 +111,5 @@
     {
         EditContext = new EditContext(Product);
         ValidationMessageStore = new ValidationMessageStore(EditContext);
-    }
-
-    private string TagsList
-    {
-        get => string.Join(", ", Product.Tags);
-        set => Product.Tags = value.Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries).Select(tag => tag.Trim()).ToList();
     }
 }

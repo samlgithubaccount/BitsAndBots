@@ -4,6 +4,7 @@
     position: relative;
     display: flex;
     flex-direction: column;
+    min-height: 90vh;
 }
 
 main {
@@ -75,6 +76,10 @@ a {
     text-decoration: none;
 }
 
+.footer-link {
+    color: #F3E1D8;
+}
+
 
 .nav-item {
     padding-left: 2vw;
@@ -109,7 +114,6 @@ button.accept-policy {
 .footer {
     line-height: 10vh;
     background-image: linear-gradient(#ec8959, #ce6a46);
-    position: fixed;
     left: 0;
     bottom: 0;
     width: 100%;
