@@ -109,17 +109,27 @@
 
         var sortOption = ProductSortOptions.GetByDisplayName(SortBy);
 
+        var searchQuery = SearchQuery.ToLower().Trim();
+        var searchKeywords = searchQuery.Split(new char[0], StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+
         var query = context.Product
             .Include(product => product.Images.OrderBy(i => i.Index))
-            .Where(p => p.Title.Contains(SearchQuery));
-            //.Where(p => p.Tags.ToList().Any(tag => tag.Equals(SearchQuery)));
-        //.Include(product => product.Tags)
-            //.Where(p => p.Title.Contains(SearchQuery)/*  || p.Tags.AsEnumerable().Contains(SearchQuery, StringComparer.OrdinalIgnoreCase) */);
+            .Where(p => p.Title.ToLower().Contains(searchQuery) || searchKeywords.Any(k => p.Tags.ToLower().Contains(k)));
 
         query = sortOption.SortDirection == Models.SortDirection.Ascending
-            ? query.OrderBy(sortOption.KeySelector)
-            : query.OrderByDescending(sortOption.KeySelector);
+        ? query.OrderBy(sortOption.KeySelector)
+        : query.OrderByDescending(sortOption.KeySelector);
 
-        Products = await query.ToListAsync();
-	}
+        var fetchedProducts = await query.ToListAsync();
+        //Re filter to ensure it contains the search tags in full as we cannot do this in the EF linq query
+        if (searchKeywords.Any())
+        {
+            fetchedProducts = fetchedProducts
+            .Where(p => p.Title.ToLower().Contains(searchQuery) ||
+                (p.Tags.Split(",", StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries).Any(t => searchKeywords.Contains(t, StringComparer.OrdinalIgnoreCase))))
+            .ToList();
+        }
+
+        Products = fetchedProducts;
+    }
 }

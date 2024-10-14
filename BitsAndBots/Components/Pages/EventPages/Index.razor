@@ -111,15 +111,28 @@
 
         var sortOption = EventSortOptions.GetByDisplayName(SortBy);
 
+        var searchQuery = SearchQuery.ToLower().Trim();
+        var searchKeywords = searchQuery.Split(new char[0], StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+
         var query = context.Event
             .Include(e => e.Images.OrderBy(i => i.Index))
             .Where(e => e.EndTime > DateTime.Now)
-            .Where(e => e.Title.Contains(SearchQuery));
+            .Where(e => e.Title.ToLower().Contains(searchQuery) || searchKeywords.Any(k => e.Tags.ToLower().Contains(k)));
 
         query = sortOption.SortDirection == Models.SortDirection.Ascending
             ? query.OrderBy(sortOption.KeySelector)
             : query.OrderByDescending(sortOption.KeySelector);
 
-        Events = await query.ToListAsync();
+        var fetchedEvents = await query.ToListAsync();
+        //Re filter to ensure it contains the search tags in full as we cannot do this in the EF linq query
+        if (searchKeywords.Any())
+        {
+            fetchedEvents = fetchedEvents
+            .Where(e => e.Title.ToLower().Contains(searchQuery) ||
+                (e.Tags.Split(",", StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries).Any(t => searchKeywords.Contains(t, StringComparer.OrdinalIgnoreCase))))
+            .ToList();
+        }
+
+        Events = fetchedEvents;
 	}
 }

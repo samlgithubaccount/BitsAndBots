@@ -28,12 +28,6 @@ namespace BitsAndBots.Data
                 entity.HasMany(product => product.Images)
                     .WithOne(image => image.Product)
                     .HasForeignKey(image => image.ProductId);
-
-                entity.Property(product => product.Tags)
-                    .HasConversion(
-                        v => string.Join(",", v),
-                        v => v.Split(',', StringSplitOptions.None)
-                    );
             });
 
             modelBuilder.Entity<Event>(static entity =>
@@ -47,12 +41,6 @@ namespace BitsAndBots.Data
                 entity.HasMany(e => e.Images)
                     .WithOne(image => image.Event)
                     .HasForeignKey(image => image.EventId);
-
-                entity.Property(e => e.Tags)
-                    .HasConversion(
-                        v => string.Join(",", v),
-                        v => v.Split(',', StringSplitOptions.None)
-                    );
             });
 
             modelBuilder.Entity<Fundraiser>(static entity =>
@@ -66,12 +54,6 @@ namespace BitsAndBots.Data
                 entity.HasMany(fundraiser => fundraiser.Images)
                     .WithOne(image => image.Fundraiser)
                     .HasForeignKey(image => image.FundraiserId);
-
-                entity.Property(e => e.Tags)
-                    .HasConversion(
-                        v => string.Join(",", v),
-                        v => v.Split(',', StringSplitOptions.None)
-                    );
             });
 
             modelBuilder.Entity<IndividualFundraiserParticipationRegistration>(static entity =>

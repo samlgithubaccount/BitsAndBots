@@ -34,7 +34,7 @@
             }
             @if (IsTeamRegistration)
             {
-                <EditForm method="post" Model="TeamFundraiserParticipationRegistration" OnValidSubmit="AddFundraiserParticipationRegistration" FormName="create" Enhance>
+                <EditForm method="post" EditContext="@TeamEditContext" OnValidSubmit="AddFundraiserParticipationRegistration" FormName="create" Enhance>
                     <DataAnnotationsValidator />
                     @if (registrationValidationMessages.Any())
                     {
@@ -58,7 +58,7 @@
                         </div>
                     }
                     <div class="mb-3">
-                        <label for="teamname" class="form-label">TeamName:</label>
+                        <label for="teamname" class="form-label">Team Name:</label>
                         <InputText id="teamname" @bind-Value="TeamFundraiserParticipationRegistration.TeamName" class="form-control" />
                         <ValidationMessage For="() => TeamFundraiserParticipationRegistration.TeamName" class="text-danger" />
                     </div>
@@ -83,16 +83,16 @@
                     @if (Fundraiser.SupportsParticipantLinks)
                     {
                         <div class="mb-3">
-                            <label for="participantlink" class="form-label">ParticipantLink:</label>
-                            <InputText id="participantlink" @bind-Value="ParticipantLink" class="form-control" />
-                            <ValidationMessage For="() => ParticipantLink" class="text-danger" />
+                            <label for="participantlink" class="form-label">Participant Link:</label>
+                            <InputText id="participantlink" @bind-Value="TeamFundraiserParticipationRegistration.ParticipantLink" class="form-control" />
+                            <ValidationMessage For="() => TeamFundraiserParticipationRegistration.ParticipantLink" class="text-danger" />
                         </div>
                     }
                     <button @onclick="ClearErrors" type="submit" class="btn btn-primary">Register</button>
                 </EditForm>
             } else
             {
-                <EditForm method="post" Model="IndividualFundraiserParticipationRegistration" OnValidSubmit="AddFundraiserParticipationRegistration" FormName="create" Enhance>
+                <EditForm method="post" EditContext="@IndividualEditContext" OnValidSubmit="AddFundraiserParticipationRegistration" FormName="create" Enhance>
                     <DataAnnotationsValidator />
                     @if (registrationValidationMessages.Any())
                     {
@@ -119,8 +119,8 @@
                     {
                         <div class="mb-3">
                             <label for="participantlink" class="form-label">Participant Link:</label>
-                            <InputText id="participantlink" @bind-Value="ParticipantLink" class="form-control" />
-                            <ValidationMessage For="() => ParticipantLink" class="text-danger" />
+                            <InputText id="participantlink" @bind-Value="IndividualFundraiserParticipationRegistration.ParticipantLink" class="form-control" />
+                            <ValidationMessage For="() => IndividualFundraiserParticipationRegistration.ParticipantLink" class="text-danger" />
                         </div>
                     }
                     <button @onclick="ClearErrors" type="submit" class="btn btn-primary">Register</button>
@@ -142,8 +142,10 @@
     private TeamFundraiserParticipationRegistration TeamFundraiserParticipationRegistration { get; set; } = new();
     [SupplyParameterFromForm]
     private IndividualFundraiserParticipationRegistration IndividualFundraiserParticipationRegistration { get; set; } = new();
-    private string ParticipantLink { get; set; }
     IList<string> registrationValidationMessages = new List<string>();
+
+    public EditContext TeamEditContext;
+    public EditContext IndividualEditContext;
 
     public ApplicationUser CurrentUser { get; set; }
     private Fundraiser Fundraiser;
@@ -151,6 +153,14 @@
     private bool IsTeamRegistration = false;
     private string SearchUsername = "";
     private ApplicationUser? SearchTeamMember = null;
+
+    protected override void OnInitialized()
+    {
+        TeamEditContext = new EditContext(TeamFundraiserParticipationRegistration);
+        IndividualEditContext = new EditContext(IndividualFundraiserParticipationRegistration);
+        TeamEditContext.OnFieldChanged += TeamEditContext_OnFieldChanged;
+        IndividualEditContext.OnFieldChanged += IndividualEditContext_OnFieldChanged;
+    }
 
     protected override async Task OnInitializedAsync()
     {
@@ -242,7 +252,6 @@
         {
             TeamFundraiserParticipationRegistration.FundraiserId = FundraiserId;
             TeamFundraiserParticipationRegistration.UserId = CurrentUser.Id;
-            TeamFundraiserParticipationRegistration.ParticipantLink = ParticipantLink;
 
             foreach (var teamMember in TeamFundraiserParticipationRegistration.TeamMembers)
             {
@@ -255,7 +264,6 @@
         {
             IndividualFundraiserParticipationRegistration.FundraiserId = FundraiserId;
             IndividualFundraiserParticipationRegistration.UserId = CurrentUser.Id;
-            IndividualFundraiserParticipationRegistration.ParticipantLink = ParticipantLink;
             context.IndividualFundraiserParticipationRegistration.Add(IndividualFundraiserParticipationRegistration);
         }
 
@@ -284,6 +292,30 @@
             TeamFundraiserParticipationRegistration.TeamMembers.Add(SearchTeamMember);
             SearchTeamMember = null;
             SearchUsername = "";
+        }
+    }
+
+    private bool skipNotification;
+
+    private void TeamEditContext_OnFieldChanged(object sender, FieldChangedEventArgs e)
+    {
+        if (e.FieldIdentifier.FieldName == "ParticipantLink" && !skipNotification)
+        {
+            skipNotification = true;
+            IndividualFundraiserParticipationRegistration.ParticipantLink = TeamFundraiserParticipationRegistration.ParticipantLink;
+            IndividualEditContext.NotifyFieldChanged(TeamEditContext.Field(nameof(IndividualFundraiserParticipationRegistration.ParticipantLink)));
+            skipNotification = false;
+        }
+    }
+
+    private void IndividualEditContext_OnFieldChanged(object sender, FieldChangedEventArgs e)
+    {
+        if (e.FieldIdentifier.FieldName == "ParticipantLink" && !skipNotification)
+        {
+            skipNotification = true;
+            TeamFundraiserParticipationRegistration.ParticipantLink = IndividualFundraiserParticipationRegistration.ParticipantLink;
+            TeamEditContext.NotifyFieldChanged(TeamEditContext.Field(nameof(TeamFundraiserParticipationRegistration.ParticipantLink)));
+            skipNotification = false;
         }
     }
 }
