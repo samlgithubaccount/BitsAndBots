@@ -99,11 +99,11 @@ TODO: Navigate correctly *@
                             <img src="data:image;base64,@System.Convert.ToBase64String(registration.Fundraiser.Images.First().ImageData)" />
                             <div class="name">@registration.Fundraiser.Title</div>
                         </a>
+                        @if (!string.IsNullOrWhiteSpace(registration.ParticipantLink))
+                        {
+                            <a href="@registration.ParticipantLink">@registration.ParticipantLink</a>
+                        }
                     </div>
-                    @if (!string.IsNullOrWhiteSpace(registration.ParticipantLink))
-                    {
-                        <a href="@registration.ParticipantLink">@registration.ParticipantLink</a>
-                    }
                 }
 
             }
@@ -128,12 +128,12 @@ TODO: Navigate correctly *@
                             <img src="data:image;base64,@System.Convert.ToBase64String(registration.Fundraiser.Images.First().ImageData)" />
                             <div class="name">@registration.Fundraiser.Title</div>
                         </a>
+                        <div>@registration.TeamName</div>
+                        @if (!string.IsNullOrWhiteSpace(registration.ParticipantLink))
+                        {
+                            <a href="@registration.ParticipantLink">@registration.ParticipantLink</a>
+                        }
                     </div>
-                    <span>@registration.TeamName</span>
-                    @if (!string.IsNullOrWhiteSpace(registration.ParticipantLink))
-                    {
-                        <a href="@registration.ParticipantLink">@registration.ParticipantLink</a>
-                    }
                 }
             }
         </div>
