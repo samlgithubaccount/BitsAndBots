@@ -2,6 +2,10 @@
     
 }
 
+.btn-block {
+    width: 100%;
+}
+
 .page-title {
     word-break: break-all;
     display: inline-block;

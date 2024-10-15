@@ -7,6 +7,10 @@
     
 }
 
+.btn-block {
+    width: 100%;
+}
+
 img {
     overflow: hidden;
     object-fit:contain;
@@ -16,7 +20,7 @@ img {
 
 .price {
     text-align: center;
-    font: 30px 'ltsaeada';
+    font: 30px 'garet';
     padding: 2vh;
     background-color: white;
     margin: auto;
@@ -38,29 +42,29 @@ img {
 .desc-title {
     text-align: center;
     margin-bottom: 2vh;
-    font: 20px 'ltsaeada';
+    font: 20px 'garet';
     text-decoration:underline;
 }
 
 .description {
     text-align: center;
-    font: 15px 'ltsaeada';
+    font: 15px 'garet';
 }
 
 .quantity {
     text-align: center;
-    font: 20px 'ltsaeada';
+    font: 20px 'garet';
 }
 
 .creator {
     text-align: center;
     margin-bottom: 5vh;
-    font: 20px 'ltsaeada';
+    font: 20px 'garet';
 }
 
 .edit {
     display: flex;
-    font: 3vh 'ltsaeada';
+    font: 3vh 'garet';
     color: #0f454a;
 }
 

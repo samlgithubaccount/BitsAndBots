@@ -1,4 +1,5 @@
 ﻿using BitsAndBots.Data;
+using BitsAndBots.Validators;
 using System.ComponentModel.DataAnnotations;
 
 namespace BitsAndBots.Models
@@ -22,6 +23,7 @@ namespace BitsAndBots.Models
         [Range(0, Int32.MaxValue)]
         public int? Quantity { get; set; }
         [StringLength(150, ErrorMessage = "{0} may only contain up to {1} characters.")]
+        [TagValidator(ErrorMessage = "{0} must not contain whitespace.")]
         public string? Tags { get; set; }
         [MinLength(1, ErrorMessage = "A minimum of 1 Image is required.")]
         public IList<ProductImage> Images { get; set; } = [];

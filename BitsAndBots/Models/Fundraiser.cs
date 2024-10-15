@@ -42,6 +42,7 @@ namespace BitsAndBots.Models
         public string CreatedUserId { get; set; }
         public ApplicationUser CreatedUser { get; set; }
         [StringLength(150, ErrorMessage = "{0} may only contain up to {1} characters.")]
+        [TagValidator(ErrorMessage = "{0} must not contain whitespace.")]
         public string? Tags { get; set; }
         [MinLength(1, ErrorMessage = "A minimum of 1 Image is required.")]
         public IList<FundraiserImage> Images { get; set; } = [];

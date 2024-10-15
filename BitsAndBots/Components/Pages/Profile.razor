@@ -15,17 +15,26 @@
 
 <PageTitle>@username - Profile</PageTitle>
 
-<h3>@username</h3>
-<AuthorizeView>
-    @if (IsCurrentUserProfile)
-    {
-        <a href="Account/Manage">Manage account</a>
-    }
-</AuthorizeView>
+<h2 style="text-align:center">@username</h2>
+<div class="row">
+    <div class="col-5"></div>
+    <div class="col-2">
+        <AuthorizeView>
+            @if (IsCurrentUserProfile)
+            {
+                <a href="Account/Manage" class="btn btn-warning btn-lg btn-block" role="button">Manage account</a>
+            }
+        </AuthorizeView>
+    </div>
+</div>
 
+<div style="margin:6vh;" />
+
+@* TODO: All product class?
+TODO: Navigate correctly *@
 <div class="row">
     <div class="col-12">
-        <h4>Products</h4>
+        <h4 style ="text-align:center">My Products</h4>
         <div style="margin:3vh;" class="border-bottom" />
         <div id="prodContents" class="scrollbox">
             @if (!Products.Any())
@@ -50,7 +59,7 @@
     <div style="margin-bottom:10vh;"></div>
 
     <div class="col-12">
-        <h4>Events</h4>
+        <h4 style="text-align:center">My Events</h4>
         <div style="margin:3vh;" class="border-bottom" />
         <div class="scrollbox">
             @if (!Events.Any())
@@ -75,7 +84,7 @@
     <div style="margin-bottom:10vh;"></div>
 
     <div class="col-12">
-        <h4>Individual Fundraiser Registrations</h4>
+        <h4 style="text-align:center">Individual Fundraisers</h4>
         <div style="margin:3vh;" class="border-bottom" />
         <div class="scrollbox">
             @if (!IndividualFundraiserRegistrations.Any())
@@ -104,7 +113,7 @@
     <div style="margin-bottom:10vh;"></div>
 
     <div class="col-12">
-        <h4>Team Fundraiser Registrations</h4>
+        <h4 style="text-align:center">Team Fundraisers</h4>
         <div style="margin:3vh;" class="border-bottom" />
         <div class="scrollbox">
             @if (!TeamFundraiserRegistrations.Any())
