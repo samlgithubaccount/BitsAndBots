@@ -39,7 +39,7 @@ To setup the project, you will need Visual Studio Community 2022 or later.
 
 ![alt text](https://github.com/samlgithubaccount/BitsAndBots/blob/a49201a56cae93ac55306f533b4dcc04a627204c/ReadMeImages/p2s3.png?raw=true)
 
-4. Input a folder where you would like the project to be stored for the Path field.
+4. Input the folder where you would like the project to be stored for the Path field.
 
 ![alt text](https://github.com/samlgithubaccount/BitsAndBots/blob/a49201a56cae93ac55306f533b4dcc04a627204c/ReadMeImages/p2s4.png?raw=true)
 
@@ -60,14 +60,14 @@ To setup the project, you will need Visual Studio Community 2022 or later.
 
 3. Configure the appsettings as required. These settings will be applied on startup of the project.
 
-    a. FileUploadConstraints configures what is allowed for product, event and fundraiser images.
+    a. FileUploadConstraints configures what is allowed for product, event and fundraiser images.\
     The defaults shown here will be applied if this is omitted.
     
-    b. Administrators configures the administrator users that will be setup automatically when the project is run. 
-    Any number of administrators may be specified.
-    All 3 fields are required for each administrator and the email and username must be unique.
+    b. Administrators configures the administrator users that will be setup automatically when the project is run.\
+    Any number of administrators may be specified.\
+    All 3 fields are required for each administrator and the email and username must be unique.\
     
-    c. SenderEmailCredentials configures the SMTP settings that will be used by the BitsAndBots website to send a product enquiry notification to the user that listed a product.
+    c. SenderEmailCredentials configures the SMTP settings that will be used by the BitsAndBots website to notify the user who listed the product when a user submits a product enquiry.\
     All fields are required.
 
 ![alt text](https://github.com/samlgithubaccount/BitsAndBots/blob/master/ReadMeImages/p3s3.png?raw=true)
@@ -75,3 +75,7 @@ To setup the project, you will need Visual Studio Community 2022 or later.
 4. Click the run button at the top to start the project. The dropdown can be used to change it to http if required. The database will be setup automatically when the project runs.
 
 ![alt text](https://github.com/samlgithubaccount/BitsAndBots/blob/master/ReadMeImages/p3s4.png?raw=true)
+
+5. Visual Studio should launch the site in your web browser
+
+![alt text](https://github.com/samlgithubaccount/BitsAndBots/blob/master/ReadMeImages/p3s5.png?raw=true)
