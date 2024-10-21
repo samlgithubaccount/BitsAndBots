@@ -9,6 +9,7 @@ This document will contain the steps for setting up the project workspace. These
 To setup the project you will need Visual Studio Community 2022 or later.
 1. Navigate to https://visualstudio.microsoft.com/downloads/.
 2. Select the download button for Community.
+![alt text](https://github.com/samlgithubaccount/BitsAndBots/blob/eeccdbdb3be5223ba1770a5dd914815857ba0d1a/ReadMeImages/p1s2.png?raw=true)
 3. Run the downloaded executable.
 4. Select Continue.
 5. Select ASP.NET and web development and then select Install.
