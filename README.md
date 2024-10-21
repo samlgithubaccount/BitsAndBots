@@ -1,12 +1,12 @@
 # Bits and Bots Project
 
-Welcome to the Bits and Bots project repository. This repository contains the source code for a web based platform in which young entrepreneurs can advertise their creations, workshops and fundraisers to the general public.
+Welcome to the Bits and Bots project repository. This repository contains the source code for a web-based platform in which young entrepreneurs can advertise their creations, workshops, and fundraisers to the general public.
 
-This document will contain the steps for setting up the project workspace. These instructions are for the Windows operating system, the steps may vary slightly for other operating systems.
+This document will contain the steps for setting up the project workspace. These instructions are for the Windows operating system; the steps may vary for other operating systems.
 
 ## Project Setup Instructions
-### Install The Required Software
-To setup the project you will need Visual Studio Community 2022 or later.
+### Install the Required Software
+To setup the project, you will need Visual Studio Community 2022 or later.
 1. Navigate to https://visualstudio.microsoft.com/downloads/.
 2. Select the download button for Community.
 
@@ -20,7 +20,7 @@ To setup the project you will need Visual Studio Community 2022 or later.
 
 ![alt text](https://github.com/samlgithubaccount/BitsAndBots/blob/a49201a56cae93ac55306f533b4dcc04a627204c/ReadMeImages/p1s4.png?raw=true)
 
-5. Select ASP.NET and web development and then select Install.
+5. Select ASP.NET and web development, then select Install.
 
 ![alt text](https://github.com/samlgithubaccount/BitsAndBots/blob/a49201a56cae93ac55306f533b4dcc04a627204c/ReadMeImages/p1s5.png?raw=true)
 
