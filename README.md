@@ -78,4 +78,4 @@ To setup the project, you will need Visual Studio Community 2022 or later.
 
 5. Visual Studio should launch the site in your web browser
 
-![alt text](https://github.com/samlgithubaccount/BitsAndBots/blob/master/ReadMeImages/p3s5.png?raw=true)
+![alt text](https://github.com/samlgithubaccount/BitsAndBots/blob/5b8be973b7db9adc87b48532d14e0b098011ee4a/ReadMeImages/p3s5.png?raw=true)
