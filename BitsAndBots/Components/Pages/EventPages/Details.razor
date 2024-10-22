@@ -108,7 +108,7 @@
                 <div class="row">
                     <div class="col-4"></div>
                     <div class="col-2">
-                        <a href="@($"/events/edit?id ={eventEntity.Id}")" class="btn btn-info btn-lg btn-block col-2" role="button">Edit</a>
+                        <a href="@($"/events/edit?id={eventEntity.Id}")" class="btn btn-info btn-lg btn-block col-2" role="button">Edit</a>
                     </div>
 
                     <EditForm class="col-2" method="post" Model="eventEntity" OnValidSubmit="DeleteEvent" FormName="delete" Enhance>
