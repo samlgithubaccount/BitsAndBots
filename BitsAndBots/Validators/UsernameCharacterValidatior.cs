@@ -7,6 +7,10 @@ namespace BitsAndBots.Validators
     {
         public override bool IsValid(object? value)
         {
+            if (value == null)
+            {
+                return true;
+            }
             return Regex.Match(value.ToString(), @"^[a-zA-Z0-9-_]*$").Success;
         }
     }
